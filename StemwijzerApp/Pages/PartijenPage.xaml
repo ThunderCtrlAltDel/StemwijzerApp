@@ -9,6 +9,9 @@
       Title="PartijenPage" Background="White">
 
     <Grid>
+        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Partijen"></TextBlock>
+        
+        
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" FontWeight="Bold" Text="Politieke Partijen" Margin="-790,-800,0,0"></TextBlock>
         <Border Width="1200" Height="100" CornerRadius="10" Padding="5" Background="#FFF0E2C8" BorderThickness="0" Margin="0,-500,0,0">
             <StackPanel Width="1200" Height="100">
