@@ -10,5 +10,7 @@
 
     <Grid>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Partijen"></TextBlock>
+        
+        
     </Grid>
 </Page>
