@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="1100" d:DesignWidth="1300"
-      Title="PartijenPage" Background="HotPink">
+      Title="PartijenPage" Background="White">
 
     <Grid>
         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Partijen"></TextBlock>
