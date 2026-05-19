@@ -3,11 +3,11 @@
 namespace StemwijzerApp.Pages
 {
     /// <summary>
-    /// Interaction logic for VerkiezingenPage.xaml
+    /// Interaction logic for StandpuntenarrangementenPage.xaml
     /// </summary>
-    public partial class VerkiezingenPage : Page
+    public partial class StandpuntenarrangementenPage : Page
     {
-        public VerkiezingenPage()
+        public StandpuntenarrangementenPage()
         {
             InitializeComponent();
         }
