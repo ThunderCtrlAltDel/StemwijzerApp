@@ -22,11 +22,23 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Standpunten" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+            <TextBlock Text="Standpunten" FontSize="24"  VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
             <Button Content="+ Nieuw Standpunt" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
         </Grid>
 
-        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}">
+        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
+
+            <DataGrid.Items>
+                <local:VoorbeeldStandpunt
+                    Titel="Meer windmolens bouwen"
+                    Categorie="Klimaat"
+                    Beschrijving="Er moeten meer windmolens gebouwd worden voor duurzame energie"/>
+
+                <local:VoorbeeldStandpunt
+                    Titel="Belastingverlaging middeninkomens"
+                    Categorie="Economie"
+                    Beschrijving="De belastingen moeten omlaag voor middeninkomens" />
+            </DataGrid.Items>
             <DataGrid.Columns>
 
                 <DataGridTextColumn Header="Titel"
@@ -38,10 +50,11 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Border Background="#EAEAEA"
-                                    CornerRadius="12"
+                                    Height="22"
+                                    CornerRadius="8"
                                     HorizontalAlignment="Left"
-                                    Padding="12,4"
-                                    Margin="10,0">
+                                    Padding="10,3"
+                                    Margin="5,0">
                                 <TextBlock Text="{Binding Categorie}"
                                            Foreground="#4A4A4A"
                                            FontSize="12"
@@ -61,9 +74,9 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                <Button Content="👁" Background="Transparent" BorderThickness="0" Foreground="#2D3748" Margin="5,0" Cursor="Hand"/>
-                                <Button Content="✎" Background="Transparent" BorderThickness="0" Foreground="#2D3748" Margin="5,0" Cursor="Hand"/>
-                                <Button Content="🗑" Background="Transparent" BorderThickness="0" Foreground="#E53E3E" Margin="5,0" Cursor="Hand"/>
+                                <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748"  />
+                                <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748"  />
+                                <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
