@@ -5,25 +5,115 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="1100" d:DesignWidth="1300"
-      Title="PartijenPage" Background="White">
+      d:DesignHeight="800" d:DesignWidth="1200"
+      Title="PartijenPage" Background="#EDF2F4">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Partijen"></TextBlock>
-        
-        
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" FontWeight="Bold" Text="Politieke Partijen" Margin="-790,-800,0,0"></TextBlock>
-        <Border Width="1200" Height="100" CornerRadius="10" Padding="5" Background="#FFF0E2C8" BorderThickness="0" Margin="0,-500,0,0">
-            <StackPanel Width="1200" Height="100">
-                <TextBlock FontWeight="Bold" Width="150" Height="40" FontSize="28" Margin="-985,10,0,0">Afkorting</TextBlock>
-                <TextBlock FontWeight="Bold" Width="150" Height="40" FontSize="28" Margin="-500,-40,0,0">Naam</TextBlock>
-                <TextBlock FontWeight="Bold" Width="170" Height="40" FontSize="28" Margin="0,-40,0,0">Beschrijving</TextBlock>
-                <TextBlock FontWeight="Bold" Width="150" Height="40" FontSize="28" Margin="500,-40,0,0">Kleur</TextBlock>
-                <TextBlock FontWeight="Bold" Width="150" Height="40" FontSize="28" Margin="900,-40,0,0">Acties</TextBlock>
-            </StackPanel>
+    <Page.Resources>
+        <Style x:Key="DataGridHeaderBeige" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#FFF0E2C8"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#222"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#FFE0D8C6"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Politieke Partijen" 
+                       FontSize="32" 
+                       FontWeight="Bold" 
+                       Foreground="#2D3748" 
+                       VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1" 
+                    Width="240" Height="50" 
+                    Background="#FF020247" 
+                    Foreground="White"
+                    BorderThickness="0"
+                    FontSize="18"
+                    FontWeight="SemiBold">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="10"/>
+                    </Style>
+                </Button.Resources>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="+" Margin="0,0,10,0" FontSize="24" VerticalAlignment="Center"/>
+                    <TextBlock Text="Nieuwe Partij" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <Border Grid.Row="2" 
+                Background="White" 
+                CornerRadius="10" 
+                Padding="10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="15" Direction="270" Opacity="0.1" ShadowDepth="2"/>
+            </Border.Effect>
+
+            <DataGrid x:Name="LijstDataGridBox"
+                      AutoGenerateColumns="False"
+                      ItemsSource="{Binding Partijen}"
+                      HeadersVisibility="Column"
+                      RowHeight="56"
+                      GridLinesVisibility="None"
+                      AlternatingRowBackground="#FFF8F8F8"
+                      CanUserAddRows="False"
+                      CanUserResizeRows="False"
+                      SelectionMode="Single"
+                      ColumnHeaderStyle="{StaticResource DataGridHeaderBeige}"
+                      BorderThickness="0"
+                      Background="Transparent">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Afkorting" Binding="{Binding Afkorting}" Width="120"/>
+                    <DataGridTextColumn Header="Naam" Binding="{Binding Naam}" Width="2*"/>
+                    <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="3*"/>
+
+                    <DataGridTemplateColumn Header="Kleur" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Width="30" Height="20" CornerRadius="4" 
+                                        Background="{Binding Kleur}" 
+                                        HorizontalAlignment="Left" Margin="10,0" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Acties" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Bekijk">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A8;" FontSize="16" Foreground="#4A5568"/>
+                                    </Button>
+                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Bewerken">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="16" Foreground="#4A5568"/>
+                                    </Button>
+                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Verwijderen">
+                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" FontSize="16" Foreground="#E53E3E"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Border>
-        <ListBox Width="1000" Height="600" Margin="0,210,0,0">
-            <TextBlock></TextBlock>
-        </ListBox>
     </Grid>
 </Page>
