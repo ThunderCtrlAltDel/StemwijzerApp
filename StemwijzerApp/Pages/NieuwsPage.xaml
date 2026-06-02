@@ -5,10 +5,88 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="Coral"
+      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
       Title="NieuwsPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Nieuws"></TextBlock>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="20"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Standpunten" FontSize="24"  VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+            <Button Content="+ Nieuw Standpunt" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
+        </Grid>
+
+        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
+
+            <DataGrid.Items>
+                <local:VoorbeeldNieuws
+                    Titel="Debat volgende week donderdag"
+                    Auteur="Redactie"
+                    Categorie="Verkiezingen"
+                    Datum="15-11-2024" />
+            </DataGrid.Items>
+            <DataGrid.Columns>
+
+                <DataGridTextColumn Header="Titel"
+                                    Binding="{Binding Titel}"
+                                    Width="4*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                <DataGridTextColumn Header="Auteur"
+                                    Binding="{Binding Auteur}"
+                                    Width="2*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+  
+                <DataGridTemplateColumn Header="Categorie" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="#EAEAEA"
+                                    Height="24"
+                                    CornerRadius="12"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Padding="12,0"
+                                    Margin="15,0">
+                                <TextBlock Text="{Binding Categorie}"
+                                           Foreground="#2D3748"
+                                           FontSize="13"
+                                           FontWeight="Normal"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Datum"
+                                    Binding="{Binding Datum}"
+                                    Width="2*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                
+                <DataGridTemplateColumn Header="Acties" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
+                                <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
     </Grid>
 </Page>
