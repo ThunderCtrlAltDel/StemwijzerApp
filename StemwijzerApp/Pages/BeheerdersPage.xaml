@@ -5,10 +5,87 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="Chartreuse"
-      Title="BeheerdersPage"> 
+      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
+      Title="BeheerdersPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Beheerders"></TextBlock>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="20"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Beheerders" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+            <Button Content="+ Nieuwe Beheerder" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
+        </Grid>
+
+        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
+
+            <DataGrid.Items>
+                <local:VoorbeeldBeheerder
+                    Naam="Hoofd Beheerder"
+                    Email="admin@stemwijzer.nl"
+                    Rol="Hoofdbeheerder"
+                    Aangemaakt="1-1-2024" />
+            </DataGrid.Items>
+
+            <DataGrid.Columns>
+
+                <DataGridTextColumn Header="Naam"
+                                    Binding="{Binding Naam}"
+                                    Width="3*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                <DataGridTextColumn Header="E-mail"
+                                    Binding="{Binding Email}"
+                                    Width="3.5*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                <DataGridTemplateColumn Header="Rol" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="#EAEAEA"
+                                    Height="24"
+                                    CornerRadius="12"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Padding="12,0"
+                                    Margin="15,0">
+                                <TextBlock Text="{Binding Rol}"
+                                           Foreground="#2D3748"
+                                           FontSize="13"
+                                           FontWeight="Normal"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Aangemaakt"
+                                    Binding="{Binding Aangemaakt}"
+                                    Width="2*"
+                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                <DataGridTemplateColumn Header="Acties" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
+                                <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
     </Grid>
 </Page>
