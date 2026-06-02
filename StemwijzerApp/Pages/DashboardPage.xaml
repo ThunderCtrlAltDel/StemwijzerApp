@@ -5,11 +5,218 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300"
-      Title="DashboardPage" Background="#EDF2F4">
+      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
+      Title="DashboardPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Dashboard"></TextBlock>
-           
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <TextBlock Text="Dashboard" FontSize="24" FontWeight="SemiBold" Foreground="#2D3748"/>
+                <TextBlock Text="Overzicht van belangrijke statistieken" FontSize="14" Foreground="#718096" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <UniformGrid Grid.Row="2" Columns="3" Rows="2" VerticalAlignment="Top">
+                <Border Style="{StaticResource StatCardStyle}" Margin="0,0,15,15">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Totaal Partijen" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="12" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="☑" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}" Margin="10,0,10,15">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Actieve Verkiezingen" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="3" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="📅" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}" Margin="15,0,0,15">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Gebruikers" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="1.247" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="👥" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}" Margin="0,10,15,0">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Nieuws Artikelen" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="86" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="📄" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}" Margin="10,10,10,0">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Reacties" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="423" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="💬" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource StatCardStyle}" Margin="15,10,0,0">
+                    <Grid>
+                        <StackPanel>
+                            <TextBlock Text="Ingevulde Stemwijzers" Style="{StaticResource StatTitleStyle}"/>
+                            <TextBlock Text="3.891" Style="{StaticResource StatValueStyle}"/>
+                        </StackPanel>
+                        <Border Style="{StaticResource IconBadgeStyle}">
+                            <TextBlock Text="📈" Style="{StaticResource IconTextStyle}"/>
+                        </Border>
+                    </Grid>
+                </Border>
+            </UniformGrid>
+
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="7*"/>
+                    <ColumnDefinition Width="25"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource SectionCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Populariteit per Partij" Style="{StaticResource SectionTitleStyle}"/>
+
+                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Stretch" HorizontalAlignment="Right" Margin="0,0,10,25" Width="40">
+                                <TextBlock Text="2400" Foreground="#A0AEC0" FontSize="12" Height="50" TextAlignment="Right"/>
+                                <TextBlock Text="1800" Foreground="#A0AEC0" FontSize="12" Height="50" TextAlignment="Right"/>
+                                <TextBlock Text="1200" Foreground="#A0AEC0" FontSize="12" Height="50" TextAlignment="Right"/>
+                                <TextBlock Text="600" Foreground="#A0AEC0" FontSize="12" Height="50" TextAlignment="Right"/>
+                                <TextBlock Text="0" Foreground="#A0AEC0" FontSize="12" VerticalAlignment="Bottom" TextAlignment="Right"/>
+                            </StackPanel>
+
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0" BorderBrush="#E2E8F0" BorderThickness="1,0,0,1">
+                                    <UniformGrid Columns="6" Rows="1">
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="220"/>
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="160"/>
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="150"/>
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="110"/>
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="95"/>
+                                        <Border Style="{StaticResource ChartBarStyle}" Height="85"/>
+                                    </UniformGrid>
+                                </Border>
+
+                                <UniformGrid Grid.Row="1" Columns="6" Rows="1" Margin="1,8,0,0">
+                                    <TextBlock Text="VVD" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                    <TextBlock Text="PvdA" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                    <TextBlock Text="GroenLinks" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                    <TextBlock Text="CDA" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                    <TextBlock Text="D66" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                    <TextBlock Text="PVV" HorizontalAlignment="Center" Foreground="#718096" FontSize="12"/>
+                                </UniformGrid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource SectionCardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Recente Activiteit" Style="{StaticResource SectionTitleStyle}"/>
+
+                        <StackPanel Grid.Row="1">
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="6" Height="6" Fill="#2D2B42" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Jan Jansen" FontWeight="SemiBold" Foreground="#2D3748" FontSize="14"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Stemwijzer ingevuld" Foreground="#718096" FontSize="13" Margin="14,4,0,0"/>
+                                </StackPanel>
+                                <TextBlock Text="5 minuten geleden" Foreground="#A0AEC0" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            </Grid>
+                            <Border BorderBrush="#F0F4F8" BorderThickness="0,1,0,0" Margin="0,0,0,15"/>
+
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="6" Height="6" Fill="#2D2B42" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Marie de Vries" FontWeight="SemiBold" Foreground="#2D3748" FontSize="14"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Account aangemaakt" Foreground="#718096" FontSize="13" Margin="14,4,0,0"/>
+                                </StackPanel>
+                                <TextBlock Text="12 minuten geleden" Foreground="#A0AEC0" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            </Grid>
+                            <Border BorderBrush="#F0F4F8" BorderThickness="0,1,0,0" Margin="0,0,0,15"/>
+
+                            <Grid Margin="0,0,0,15">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="6" Height="6" Fill="#2D2B42" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Pieter Smit" FontWeight="SemiBold" Foreground="#2D3748" FontSize="14"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Reactie geplaatst" Foreground="#718096" FontSize="13" Margin="14,4,0,0"/>
+                                </StackPanel>
+                                <TextBlock Text="23 minutes geleden" Foreground="#A0AEC0" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            </Grid>
+                            <Border BorderBrush="#F0F4F8" BorderThickness="0,1,0,0" Margin="0,0,0,15"/>
+
+                            <Grid Margin="0,0,0,5">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="6" Height="6" Fill="#2D2B42" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBlock Text="Emma Bakker" FontWeight="SemiBold" Foreground="#2D3748" FontSize="14"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Stemwijzer ingevuld" Foreground="#718096" FontSize="13" Margin="14,4,0,0"/>
+                                </StackPanel>
+                                <TextBlock Text="34 minuten geleden" Foreground="#A0AEC0" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
 </Page>
