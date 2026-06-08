@@ -50,5 +50,18 @@ namespace StemwijzerApp.Pages
             Beschrijving = beschrijving;
             Kleur = kleur;
         }
+
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+    }
+
+    public class VoorbeeldPartij
+    {
+        public string Afkorting { get; set; }
+        public string Naam { get; set; }
+        public string Beschrijving { get; set; }
+        public string HexKleur { get; set; }
     }
 }
