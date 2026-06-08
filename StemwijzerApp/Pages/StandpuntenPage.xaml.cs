@@ -23,6 +23,8 @@ namespace StemwijzerApp.Pages
             InitializeComponent();
             LoadStandpunten();
             DataContext = this;
+
+            this.Unloaded += StandpuntenPage_Unloaded;
         }
 
         private void LoadStandpunten()
@@ -199,6 +201,11 @@ namespace StemwijzerApp.Pages
             _geselecteerdStandpunt = null;
             SetFormEditingState(true, isViewing: false);
             NieuwStandpuntForm.Visibility = Visibility.Collapsed;
+        }
+
+        private void StandpuntenPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            ClearForm();
         }
     }
 
