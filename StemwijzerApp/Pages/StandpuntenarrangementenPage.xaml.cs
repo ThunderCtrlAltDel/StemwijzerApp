@@ -11,5 +11,19 @@ namespace StemwijzerApp.Pages
         {
             InitializeComponent();
         }
+
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+    }
+
+    public class VoorbeeldArrangement
+    {
+        public string Naam { get; set; }
+        public string Beschrijving { get; set; }
+        public string Verkiezing { get; set; }
+        public string Aantal { get; set; }
+        public string Aangemaakt { get; set; }
     }
 }

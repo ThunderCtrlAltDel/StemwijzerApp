@@ -5,58 +5,25 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1200"
-      Title="PartijenPage" Background="#EDF2F4">
+      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
+      Title="PartijenPage">
 
-    <Page.Resources>
-        <Style x:Key="DataGridHeaderBeige" TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#FFF0E2C8"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#222"/>
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="Padding" Value="10,0"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="BorderBrush" Value="#FFE0D8C6"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-        </Style>
-    </Page.Resources>
-
-    <Grid Margin="30">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="20"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Politieke Partijen" 
-                       FontSize="32" 
-                       FontWeight="Bold" 
-                       Foreground="#2D3748" 
-                       VerticalAlignment="Center"/>
-
-            <Button Grid.Column="1" 
-                    Width="240" Height="50" 
-                    Background="#FF020247" 
-                    Foreground="White"
-                    BorderThickness="0"
-                    FontSize="18"
-                    FontWeight="SemiBold">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="10"/>
-                    </Style>
-                </Button.Resources>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="+" Margin="0,0,10,0" FontSize="24" VerticalAlignment="Center"/>
-                    <TextBlock Text="Nieuwe Partij" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
+            <TextBlock Text="Politieke Partijen" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+            <Button Content="+ Nieuwe Partij" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
         </Grid>
 
         <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
@@ -126,35 +93,34 @@
                                     Width="4*"
                                     ElementStyle="{StaticResource DataGridTextStyle}"/>
 
-                    <DataGridTemplateColumn Header="Kleur" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border Width="30" Height="20" CornerRadius="4" 
-                                        Background="{Binding Kleur}" 
-                                        HorizontalAlignment="Left" Margin="10,0" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Kleur" Width="1.5*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding HexKleur}"
+                                    Width="24"
+                                    Height="24"
+                                    CornerRadius="4"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="15,0"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Acties" Width="140">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Bekijk">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A8;" FontSize="16" Foreground="#4A5568"/>
-                                    </Button>
-                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Bewerken">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="16" Foreground="#4A5568"/>
-                                    </Button>
-                                    <Button Width="32" Height="32" Margin="4,0" Background="Transparent" BorderThickness="0" ToolTip="Verwijderen">
-                                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" FontSize="16" Foreground="#E53E3E"/>
-                                    </Button>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Border>
+                <DataGridTemplateColumn Header="Acties" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
+                                <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
+                                <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
     </Grid>
 </Page>
