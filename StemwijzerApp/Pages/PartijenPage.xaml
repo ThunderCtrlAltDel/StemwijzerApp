@@ -26,55 +26,11 @@
             <Button Content="+ Nieuwe Partij" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
         </Grid>
 
-        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
-
-            <DataGrid.Items>
-                <local:VoorbeeldPartij
-                    Afkorting="VVD"
-                    Naam="Volkspartij voor Vrijheid en Democratie"
-                    Beschrijving="Liberale partij"
-                    HexKleur="#FF6B00" />
-                <local:VoorbeeldPartij
-                    Afkorting="PvdA"
-                    Naam="Partij van de Arbeid"
-                    Beschrijving="Sociaaldemocratische partij"
-                    HexKleur="#DF0031" />
-                <local:VoorbeeldPartij
-                    Afkorting="PVV"
-                    Naam="Partij voor de Vrijheid"
-                    Beschrijving="Rechtse populistische partij"
-                    HexKleur="#007BC7" />
-                <local:VoorbeeldPartij
-                    Afkorting="GL"
-                    Naam="GroenLinks"
-                    Beschrijving="Groene en linkse partij"
-                    HexKleur="#7AB800" />
-                <local:VoorbeeldPartij
-                    Afkorting="D66"
-                    Naam="Democraten 66"
-                    Beschrijving="Sociaal-liberale partij"
-                    HexKleur="#00AE42" />
-                <local:VoorbeeldPartij
-                    Afkorting="CDA"
-                    Naam="Christen-Democratisch Appèl"
-                    Beschrijving="Christendemocratische partij"
-                    HexKleur="#007D5C" />
-                <local:VoorbeeldPartij
-                    Afkorting="SP"
-                    Naam="Socialistische Partij"
-                    Beschrijving="Socialistische partij"
-                    HexKleur="#FF0000" />
-                <local:VoorbeeldPartij
-                    Afkorting="CU"
-                    Naam="ChristenUnie"
-                    Beschrijving="Christelijk-sociale partij"
-                    HexKleur="#00A7EB" />
-                <local:VoorbeeldPartij
-                    Afkorting="PvdD"
-                    Naam="Partij voor de Dieren"
-                    Beschrijving="Dierenrechtenpartij"
-                    HexKleur="#006B2D" />
-            </DataGrid.Items>
+        <!-- Opgelost: ItemsSource toegevoegd zodat de collectie uit C# wordt geladen -->
+        <DataGrid Grid.Row="2" 
+                  Style="{StaticResource ModernDataGridStyle}" 
+                  ItemsSource="{Binding Partijen}"
+                  SelectionChanged="DataGrid_SelectionChanged">
 
             <DataGrid.Columns>
 
@@ -96,7 +52,8 @@
                 <DataGridTemplateColumn Header="Kleur" Width="1.5*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Border Background="{Binding HexKleur}"
+                            <!-- Opgelost: Binding aangepast van HexKleur naar Kleur -->
+                            <Border Background="{Binding Kleur}"
                                     Width="24"
                                     Height="24"
                                     CornerRadius="4"

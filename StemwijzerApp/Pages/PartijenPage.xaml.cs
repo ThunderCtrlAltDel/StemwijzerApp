@@ -34,6 +34,10 @@ namespace StemwijzerApp.Pages
                 new Partij("DENK", "DENK", "Sociaaldemocratische migrantenpartij", (Brush)(new BrushConverter().ConvertFrom("#00BCD4")))
             };
         }
+
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+        }
     }
 
     public class Partij
@@ -50,18 +54,5 @@ namespace StemwijzerApp.Pages
             Beschrijving = beschrijving;
             Kleur = kleur;
         }
-
-        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
-    }
-
-    public class VoorbeeldPartij
-    {
-        public string Afkorting { get; set; }
-        public string Naam { get; set; }
-        public string Beschrijving { get; set; }
-        public string HexKleur { get; set; }
     }
 }
