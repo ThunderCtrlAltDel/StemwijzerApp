@@ -26,7 +26,7 @@
             <Button Content="+ Nieuwe Partij" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
         </Grid>
 
-        <!-- Opgelost: ItemsSource toegevoegd zodat de collectie uit C# wordt geladen -->
+        
         <DataGrid Grid.Row="2" 
                   Style="{StaticResource ModernDataGridStyle}" 
                   ItemsSource="{Binding Partijen}"
