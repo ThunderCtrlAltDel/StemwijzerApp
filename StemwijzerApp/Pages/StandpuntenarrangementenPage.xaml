@@ -38,10 +38,16 @@
                     <TextBox x:Name="TxtBeschrijving" Text="Korte beschrijving van dit standpuntenarrangement" Foreground="#A0AEC0" Style="{StaticResource ModernTextBoxStyle}" Height="90" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10,10" Margin="0,0,0,20"/>
 
                     <TextBlock Text="Gekoppelde Verkiezing" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                    <ComboBox x:Name="CmbVerkiezing" Style="{StaticResource ModernComboBoxStyle}" Height="40" Margin="0,0,0,20">
-                        <ComboBoxItem Content="Geen verkiezing gekoppeld" IsSelected="True"/>
-                        <ComboBoxItem Content="Tweede Kamerverkiezingen 2025"/>
-                        <ComboBoxItem Content="Gemeenteraadsverkiezingen"/>
+                    <ComboBox x:Name="CmbVerkiezing" 
+                              Style="{StaticResource ModernComboBoxStyle}" 
+                              Height="40" 
+                              Margin="0,0,0,20"
+                              ItemsSource="{Binding BeschikbareVerkiezingen}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Naam}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                     </ComboBox>
 
                     <TextBlock Text="Standpunten in dit arrangement" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>

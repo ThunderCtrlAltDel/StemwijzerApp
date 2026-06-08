@@ -13,6 +13,7 @@ namespace StemwijzerApp.Pages
     {
         public ObservableCollection<VoorbeeldArrangement> Arrangementen { get; set; }
         public ObservableCollection<SelecteerbaarStandpunt> BeschikbareStandpunten { get; set; }
+        public ObservableCollection<VoorbeeldVerkiezingMock> BeschikbareVerkiezingen { get; set; }
         private VoorbeeldArrangement _geselecteerdArrangement;
         private bool _isLaden = false;
 
@@ -28,11 +29,15 @@ namespace StemwijzerApp.Pages
             "standpunten.json"
         );
 
+        private readonly string _verkiezingenPad = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "StemwijzerApp",
+            "verkiezingen.json"
+        );
+
         public StandpuntenarrangementenPage()
         {
             InitializeComponent();
-            LoadStandpuntenData();
-            LoadArrangementen();
             DataContext = this;
 
             this.Loaded += StandpuntenarrangementenPage_Loaded;
@@ -42,11 +47,12 @@ namespace StemwijzerApp.Pages
         private void StandpuntenarrangementenPage_Loaded(object sender, RoutedEventArgs e)
         {
             LoadStandpuntenData();
+            LoadVerkiezingenData();
             LoadArrangementen();
 
-            var tijdelijk = Arrangementen;
-            Arrangementen = null;
-            Arrangementen = tijdelijk;
+            // Dwing de UI om alles opnieuw te tekenen
+            DataContext = null;
+            DataContext = this;
         }
 
         private void LoadStandpuntenData()
@@ -69,11 +75,32 @@ namespace StemwijzerApp.Pages
                     }
                 }
             }
-            catch
-            {
-            }
-
+            catch { }
             LstStandpunten.ItemsSource = BeschikbareStandpunten;
+        }
+
+        private void LoadVerkiezingenData()
+        {
+            BeschikbareVerkiezingen = new ObservableCollection<VoorbeeldVerkiezingMock>();
+            BeschikbareVerkiezingen.Add(new VoorbeeldVerkiezingMock { Naam = "Geen verkiezing gekoppeld" });
+
+            try
+            {
+                if (File.Exists(_verkiezingenPad))
+                {
+                    string jsonString = File.ReadAllText(_verkiezingenPad);
+                    var geladenVerkiezingen = JsonSerializer.Deserialize<List<VoorbeeldVerkiezingMock>>(jsonString);
+                    if (geladenVerkiezingen != null)
+                    {
+                        foreach (var v in geladenVerkiezingen)
+                        {
+                            if (!string.IsNullOrWhiteSpace(v.Naam))
+                                BeschikbareVerkiezingen.Add(v);
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         private void LoadArrangementen()
@@ -86,38 +113,36 @@ namespace StemwijzerApp.Pages
                     Arrangementen = JsonSerializer.Deserialize<ObservableCollection<VoorbeeldArrangement>>(jsonString);
                 }
             }
-            catch
-            {
-            }
+            catch { }
 
-            if (Arrangementen != null && BeschikbareStandpunten != null)
+            if (Arrangementen != null && Arrangementen.Count > 0)
             {
                 bool dataGewijzigd = false;
-                var bestaandeTitels = BeschikbareStandpunten.Select(s => s.Titel).ToHashSet();
+                var bestaandeVerkiezingen = BeschikbareVerkiezingen.Select(v => v.Naam).ToHashSet();
 
                 foreach (var arrangement in Arrangementen)
                 {
-                    if (arrangement.GeselecteerdeTitels != null)
+                    if (!string.IsNullOrEmpty(arrangement.Verkiezing) && !bestaandeVerkiezingen.Contains(arrangement.Verkiezing))
                     {
+                        arrangement.Verkiezing = string.Empty;
+                        dataGewijzigd = true;
+                    }
+
+                    if (arrangement.GeselecteerdeTitels != null && BeschikbareStandpunten != null)
+                    {
+                        var bestaandeTitels = BeschikbareStandpunten.Select(s => s.Titel).ToHashSet();
                         int voorFiltering = arrangement.GeselecteerdeTitels.Count;
                         arrangement.GeselecteerdeTitels = arrangement.GeselecteerdeTitels
-                            .Where(titel => bestaandeTitels.Contains(titel))
-                            .ToList();
+                            .Where(titel => bestaandeTitels.Contains(titel)).ToList();
 
                         if (arrangement.GeselecteerdeTitels.Count != voorFiltering)
-                        {
                             dataGewijzigd = true;
-                        }
                     }
                 }
-
-                if (dataGewijzigd)
-                {
-                    SaveArrangementen();
-                }
+                if (dataGewijzigd) SaveArrangementen();
             }
 
-            if (Arrangementen == null)
+            if (Arrangementen == null || Arrangementen.Count == 0)
             {
                 Arrangementen = new ObservableCollection<VoorbeeldArrangement>
                 {
@@ -139,71 +164,59 @@ namespace StemwijzerApp.Pages
             try
             {
                 string mapPad = Path.GetDirectoryName(_arrangementenPad);
-                if (!Directory.Exists(mapPad))
-                {
-                    Directory.CreateDirectory(mapPad);
-                }
-
+                if (!Directory.Exists(mapPad)) Directory.CreateDirectory(mapPad);
                 string jsonString = JsonSerializer.Serialize(Arrangementen, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(_arrangementenPad, jsonString);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het opslaan: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Fout bij het opslaan: {ex.Message}");
             }
         }
 
-        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-        }
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
 
         private void NieuwArrangement_Click(object sender, RoutedEventArgs e)
         {
             _isLaden = true;
             LoadStandpuntenData();
-
+            LoadVerkiezingenData();
             _geselecteerdArrangement = null;
             TxtNaam.Clear();
             TxtBeschrijving.Clear();
             CmbVerkiezing.SelectedIndex = 0;
-
             foreach (var s in BeschikbareStandpunten) s.IsGeselecteerd = false;
-
             _isLaden = false;
             UpdateAantalGeselecteerdText();
-
             LblFormTitel.Text = "Nieuw Arrangement Toevoegen";
             BtnToevoegen.Content = "Toevoegen";
             NieuwArrangementForm.Visibility = Visibility.Visible;
         }
 
-        private void Annuleren_Click(object sender, RoutedEventArgs e)
-        {
-            ClearForm();
-        }
+        private void Annuleren_Click(object sender, RoutedEventArgs e) => ClearForm();
 
         private void Toevoegen_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtNaam.Text))
             {
-                MessageBox.Show("Vul tenminste een naam in.", "Melding", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Vul tenminste een naam in.");
                 return;
             }
 
             var gekozenTitels = BeschikbareStandpunten.Where(s => s.IsGeselecteerd).Select(s => s.Titel).ToList();
-            string verkiezingText = (CmbVerkiezing.SelectedItem as ComboBoxItem)?.Content.ToString();
+            string verkiezingText = (CmbVerkiezing.SelectedItem as VoorbeeldVerkiezingMock)?.Naam;
+            if (verkiezingText == "Geen verkiezing gekoppeld") verkiezingText = string.Empty;
 
             if (_geselecteerdArrangement == null)
             {
-                VoorbeeldArrangement nieuw = new VoorbeeldArrangement
+                Arrangementen.Add(new VoorbeeldArrangement
                 {
                     Naam = TxtNaam.Text,
                     Beschrijving = TxtBeschrijving.Text,
                     Verkiezing = verkiezingText,
                     GeselecteerdeTitels = gekozenTitels,
                     Aangemaakt = DateTime.Now.ToString("d-M-yyyy")
-                };
-                Arrangementen.Add(nieuw);
+                });
             }
             else
             {
@@ -215,7 +228,6 @@ namespace StemwijzerApp.Pages
 
             SaveArrangementen();
             ClearForm();
-
             StandpuntenarrangementenPage_Loaded(null, null);
         }
 
@@ -223,61 +235,51 @@ namespace StemwijzerApp.Pages
         {
             _isLaden = true;
             LoadStandpuntenData();
-
+            LoadVerkiezingenData();
             Button knop = sender as Button;
-            if (knop != null)
+            _geselecteerdArrangement = knop?.CommandParameter as VoorbeeldArrangement;
+
+            if (_geselecteerdArrangement != null)
             {
-                _geselecteerdArrangement = knop.CommandParameter as VoorbeeldArrangement;
-                if (_geselecteerdArrangement != null)
+                TxtNaam.Text = _geselecteerdArrangement.Naam;
+                TxtBeschrijving.Text = _geselecteerdArrangement.Beschrijving;
+                string doel = string.IsNullOrEmpty(_geselecteerdArrangement.Verkiezing) ? "Geen verkiezing gekoppeld" : _geselecteerdArrangement.Verkiezing;
+
+                for (int i = 0; i < CmbVerkiezing.Items.Count; i++)
                 {
-                    TxtNaam.Text = _geselecteerdArrangement.Naam;
-                    TxtBeschrijving.Text = _geselecteerdArrangement.Beschrijving;
-
-                    for (int i = 0; i < CmbVerkiezing.Items.Count; i++)
+                    if ((CmbVerkiezing.Items[i] as VoorbeeldVerkiezingMock)?.Naam == doel)
                     {
-                        if ((CmbVerkiezing.Items[i] as ComboBoxItem)?.Content.ToString() == _geselecteerdArrangement.Verkiezing)
-                        {
-                            CmbVerkiezing.SelectedIndex = i;
-                            break;
-                        }
+                        CmbVerkiezing.SelectedIndex = i;
+                        break;
                     }
-
-                    foreach (var s in BeschikbareStandpunten)
-                    {
-                        s.IsGeselecteerd = _geselecteerdArrangement.GeselecteerdeTitels != null &&
-                                             _geselecteerdArrangement.GeselecteerdeTitels.Contains(s.Titel);
-                    }
-
-                    _isLaden = false;
-                    UpdateAantalGeselecteerdText();
-
-                    LblFormTitel.Text = "Arrangement Bewerken";
-                    BtnToevoegen.Content = "Opslaan";
-                    NieuwArrangementForm.Visibility = Visibility.Visible;
                 }
+
+                foreach (var s in BeschikbareStandpunten)
+                    s.IsGeselecteerd = _geselecteerdArrangement.GeselecteerdeTitels != null && _geselecteerdArrangement.GeselecteerdeTitels.Contains(s.Titel);
+
+                _isLaden = false;
+                UpdateAantalGeselecteerdText();
+                LblFormTitel.Text = "Arrangement Bewerken";
+                BtnToevoegen.Content = "Opslaan";
+                NieuwArrangementForm.Visibility = Visibility.Visible;
             }
-            _isLaden = false;
         }
 
         private void VerwijderArrangement_Click(object sender, RoutedEventArgs e)
         {
             Button knop = sender as Button;
-            if (knop != null)
+            VoorbeeldArrangement item = knop?.CommandParameter as VoorbeeldArrangement;
+            if (item != null)
             {
-                VoorbeeldArrangement item = knop.CommandParameter as VoorbeeldArrangement;
-                if (item != null)
-                {
-                    if (_geselecteerdArrangement == item) ClearForm();
-                    Arrangementen.Remove(item);
-                    SaveArrangementen();
-                }
+                if (_geselecteerdArrangement == item) ClearForm();
+                Arrangementen.Remove(item);
+                SaveArrangementen();
             }
         }
 
         private void UpdateAantalGeselecteerdText()
         {
             if (_isLaden) return;
-
             int aantal = BeschikbareStandpunten.Count(s => s.IsGeselecteerd);
             LblAantalGeselecteerd.Text = $"{aantal} standpunt(en) geselecteerd";
         }
@@ -295,10 +297,7 @@ namespace StemwijzerApp.Pages
             NieuwArrangementForm.Visibility = Visibility.Collapsed;
         }
 
-        private void StandpuntenarrangementenPage_Unloaded(object sender, RoutedEventArgs e)
-        {
-            ClearForm();
-        }
+        private void StandpuntenarrangementenPage_Unloaded(object sender, RoutedEventArgs e) => ClearForm();
 
         private void DataGrid_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
@@ -311,38 +310,21 @@ namespace StemwijzerApp.Pages
                     Source = sender
                 };
                 var parent = ((Control)sender).Parent as UIElement;
-                if (parent != null)
-                {
-                    parent.RaiseEvent(eventArg);
-                }
+                parent?.RaiseEvent(eventArg);
             }
         }
     }
 
     public class VoorbeeldArrangement : System.ComponentModel.INotifyPropertyChanged
     {
-        private string _naam;
-        private string _beschrijving;
-        private string _verkiezing;
+        private string _naam, _beschrijving, _verkiezing, _aangemaakt;
         private List<string> _geselecteerdeTitels = new List<string>();
-        private string _aangemaakt;
 
         public string Naam { get => _naam; set { _naam = value; OnPropertyChanged(nameof(Naam)); } }
         public string Beschrijving { get => _beschrijving; set { _beschrijving = value; OnPropertyChanged(nameof(Beschrijving)); } }
         public string Verkiezing { get => _verkiezing; set { _verkiezing = value; OnPropertyChanged(nameof(Verkiezing)); } }
         public string Aangemaakt { get => _aangemaakt; set { _aangemaakt = value; OnPropertyChanged(nameof(Aangemaakt)); } }
-
-        public List<string> GeselecteerdeTitels
-        {
-            get => _geselecteerdeTitels;
-            set
-            {
-                _geselecteerdeTitels = value;
-                OnPropertyChanged(nameof(GeselecteerdeTitels));
-                OnPropertyChanged(nameof(AantalText));
-            }
-        }
-
+        public List<string> GeselecteerdeTitels { get => _geselecteerdeTitels; set { _geselecteerdeTitels = value; OnPropertyChanged(nameof(GeselecteerdeTitels)); OnPropertyChanged(nameof(AantalText)); } }
         public string AantalText => $"{GeselecteerdeTitels?.Count ?? 0} standpunten";
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
@@ -354,26 +336,12 @@ namespace StemwijzerApp.Pages
         private bool _isGeselecteerd;
         public string Titel { get; set; }
         public string Categorie { get; set; }
-
-        public bool IsGeselecteerd
-        {
-            get => _isGeselecteerd;
-            set
-            {
-                _isGeselecteerd = value;
-                OnPropertyChanged(nameof(IsGeselecteerd));
-                SelectionChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
+        public bool IsGeselecteerd { get => _isGeselecteerd; set { _isGeselecteerd = value; OnPropertyChanged(nameof(IsGeselecteerd)); SelectionChanged?.Invoke(this, EventArgs.Empty); } }
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
         public event EventHandler SelectionChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
 
-    public class VoorbeeldStandpuntMock
-    {
-        public string Titel { get; set; }
-        public string Categorie { get; set; }
-    }
+    public class VoorbeeldStandpuntMock { public string Titel { get; set; } public string Categorie { get; set; } }
+    public class VoorbeeldVerkiezingMock { public string Naam { get; set; } }
 }
