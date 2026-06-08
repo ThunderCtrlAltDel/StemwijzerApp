@@ -6,6 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2342F676-67E5-4081-A282-B8A541A40E21}</ProjectGuid>
     <OutputType>WinExe</OutputType>
+    <LangVersion>latest</LangVersion>	
     <RootNamespace>StemwijzerApp</RootNamespace>
     <AssemblyName>StemwijzerApp</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -83,6 +84,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\PartijDetailPage .xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\PartijenPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -120,6 +125,9 @@
     </Compile>
     <Compile Include="Pages\NieuwsPage.xaml.cs">
       <DependentUpon>NieuwsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PartijDetailPage .xaml.cs">
+      <DependentUpon>PartijDetailPage .xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PartijenPage.xaml.cs">
       <DependentUpon>PartijenPage.xaml</DependentUpon>
