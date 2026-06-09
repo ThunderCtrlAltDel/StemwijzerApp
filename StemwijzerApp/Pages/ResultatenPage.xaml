@@ -5,112 +5,214 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
+      d:DesignHeight="1000" d:DesignWidth="1300" Background="#EDF2F4"
       Title="ResultatenPage">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="20"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Stemwijzer Resultaten" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
-            <Button Content="+ Nieuw Resultaat" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center"></Button>
-        </Grid>
+                <TextBlock Text="Stemwijzer Resultaten" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+                <Button Content="+ Nieuw Resultaat" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwResultaat_Click"></Button>
+            </Grid>
 
-        <DataGrid Grid.Row="2" Style="{StaticResource ModernDataGridStyle}" SelectionChanged="DataGrid_SelectionChanged">
+            <Border x:Name="NieuwResultaatForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="LblFormTitel" Text="Nieuw Resultaat Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
 
-            <DataGrid.Items>
-                <local:VoorbeeldResultaat
-                    Gebruiker="Jan Jansen"
-                    Verkiezing="Tweede Kamerverkiezingen 2025"
-                    Voortgang="2/15"
-                    BesteMatch="PvdA"
-                    OvereenkomstWaarde="100"
-                    Datum="20-11-2024" />
-            </DataGrid.Items>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-            <DataGrid.Columns>
+                        <StackPanel Grid.Column="0" Margin="0,0,0,25">
+                            <TextBlock Text="Gebruiker" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <ComboBox x:Name="CmbGebruiker" 
+                                      Style="{StaticResource ModernComboBoxStyle}" 
+                                      Height="40"
+                                      ItemsSource="{Binding BeschikbareGebruikers}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{Binding Voornaam}"/>
+                                            <Run Text=" "/>
+                                            <Run Text="{Binding Achternaam}"/>
+                                            <Run Text=" ("/>
+                                            <Run Text="{Binding Gebruikersnaam}"/>
+                                            <Run Text=")"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
 
-                <DataGridTextColumn Header="Gebruiker"
-                                    Binding="{Binding Gebruiker}"
-                                    Width="2*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+                        <StackPanel Grid.Column="2" Margin="0,0,0,25">
+                            <TextBlock Text="Verkiezing" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtVerkiezing" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
 
-                <DataGridTextColumn Header="Verkiezing"
-                                    Binding="{Binding Verkiezing}"
-                                    Width="3.5*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnToevoegen" Content="Toevoegen en Antwoorden Invullen" Style="{StaticResource FormPrimaryButtonStyle}" Padding="15,0" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
-                <DataGridTemplateColumn Header="Voortgang" Width="1.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Background="#EAEAEA"
-                                    Height="24"
-                                    CornerRadius="12"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Padding="12,0"
-                                    Margin="15,0">
-                                <TextBlock Text="{Binding Voortgang}"
-                                           Foreground="#2D3748"
-                                           FontSize="13"
-                                           FontWeight="Normal"
-                                           VerticalAlignment="Center"/>
+            <Border x:Name="AntwoordenInvullenForm" Grid.Row="2" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="25">
+                            <StackPanel>
+                                <TextBlock Text="Stemwijzer Resultaat" FontSize="20" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,15"/>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="Gebruiker:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatGebruiker" FontWeight="SemiBold" Foreground="#2D3748"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="E-mail:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatEmail" Foreground="#2D3748"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="Verkiezing:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatVerkiezing" Foreground="#2D3748"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="Voortgang:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatVoortgang" Foreground="#2D3748" Text="0 van 2 vragen beantwoord"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="25">
+                            <StackPanel>
+                                <TextBlock Text="Beste Match" FontSize="16" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,0,0,15"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Background="#FF6B00" CornerRadius="6" Width="45" Height="45" VerticalAlignment="Center">
+                                        <TextBlock Text="VVD" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="15,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="VVD" FontSize="14" Foreground="#2D3748" FontWeight="SemiBold"/>
+                                        <TextBlock Text="0%" FontSize="20" Foreground="#2D3748" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid Margin="0,10,0,15">
+                        <TextBlock Text="Antwoorden Bewerken" FontSize="18" FontWeight="Bold" Foreground="#2D3748" VerticalAlignment="Center"/>
+                        <Button Content="💾 Opslaan" HorizontalAlignment="Right" Style="{StaticResource FormPrimaryButtonStyle}" Width="100" Click="OpslaanAntwoorden_Click"/>
+                    </Grid>
+
+                    <Border Background="White" CornerRadius="8" Padding="25" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Meer windmolens bouwen" FontSize="15" FontWeight="Bold" Foreground="#2D3748"/>
+                            <TextBlock Text="Er moeten meer windmolens gebouwd worden voor duurzame energie" FontSize="13" Foreground="#A0AEC0" Margin="0,5,0,10"/>
+                            <Border Background="#E2E8F0" CornerRadius="10" HorizontalAlignment="Left" Padding="12,4">
+                                <TextBlock Text="Klimaat" FontSize="12" Foreground="#718096" FontWeight="Medium"/>
                             </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                            <TextBlock Text="Antwoord van gebruiker" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,15,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q1"/>
+                                <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q1"/>
+                                <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q1"/>
+                                <RadioButton Grid.Column="6" Content="Geen antwoord" Style="{StaticResource TypeRadioButtonStyle}" Width="130" Height="40" GroupName="Q1" IsChecked="True"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
-                <DataGridTextColumn Header="Beste match"
-                                    Binding="{Binding BesteMatch}"
-                                    Width="1.5*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <Border Background="White" CornerRadius="8" Padding="25" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="Belastingverlaging middeninkomens" FontSize="15" FontWeight="Bold" Foreground="#2D3748"/>
+                            <TextBlock Text="De belastingen moeten omlaag voor middeninkomens" FontSize="13" Foreground="#A0AEC0" Margin="0,5,0,10"/>
+                            <Border Background="#E2E8F0" CornerRadius="10" HorizontalAlignment="Left" Padding="12,4">
+                                <TextBlock Text="Economie" FontSize="12" Foreground="#718096" FontWeight="Medium"/>
+                            </Border>
+                            <TextBlock Text="Antwoord van gebruiker" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,15,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q2"/>
+                                <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q2"/>
+                                <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="Q2"/>
+                                <RadioButton Grid.Column="6" Content="Geen antwoord" Style="{StaticResource TypeRadioButtonStyle}" Width="130" Height="40" GroupName="Q2" IsChecked="True"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
 
-                <DataGridTemplateColumn Header="Overeenkomst" Width="2.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
-                                <ProgressBar Value="{Binding OvereenkomstWaarde}" 
-                                             Maximum="100" 
-                                             Style="{StaticResource RoundedProgressBarStyle}"
-                                             VerticalAlignment="Center"
-                                             Margin="0,0,10,0"/>
-                                <TextBlock Text="{Binding OvereenkomstWaarde, StringFormat={}{0}%}" 
-                                           Foreground="#2D3748" 
-                                           FontSize="14" 
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+            <DataGrid x:Name="MainDataGrid" Grid.Row="3" 
+                      Style="{StaticResource ModernDataGridStyle}" 
+                      ItemsSource="{Binding Resultaten}"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel">
 
-                <DataGridTextColumn Header="Datum"
-                                    Binding="{Binding Datum}"
-                                    Width="1.5*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Gebruiker" Binding="{Binding VolledigeNaam}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Verkiezing" Binding="{Binding Verkiezing}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Datum" Binding="{Binding Datum}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
 
-                <DataGridTemplateColumn Header="Acties" Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
-                                <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Status" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="#EAEAEA" Height="24" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,0" Margin="15,0">
+                                    <TextBlock Text="{Binding Status}" Foreground="#2D3748" FontSize="13" VerticalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
 
-            </DataGrid.Columns>
-        </DataGrid>
-
-    </Grid>
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkResultaat_Click" CommandParameter="{Binding}" />
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderResultaat_Click" CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Page>

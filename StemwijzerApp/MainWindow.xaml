@@ -25,9 +25,7 @@
                     <Button Click="BtnVerkiezingen_Click" x:Name="BtnVerkiezingen" Content="Verkiezingen" Style="{StaticResource MenuButtonStyle}"/>
                     <Button Click="BtnStandpuntenarrangementen_Click" x:Name="BtnStandpuntenarrangementen" Content="Standpuntenarrangementen" Style="{StaticResource MenuButtonStyle}"/>
                     <Button Click="BtnGebruikers_Click" x:Name="BtnGebruikers" Content="Gebruikers" Style="{StaticResource MenuButtonStyle}"/>
-                    <Button Click="BtnNieuws_Click" x:Name="BtnNieuws" Content="Nieuws" Style="{StaticResource MenuButtonStyle}"/>
                     <Button Click="BtnBeheerders_Click" x:Name="BtnBeheerders" Content="Beheerders" Style="{StaticResource MenuButtonStyle}"/>
-                    <Button Click="BtnReacties_Click" x:Name="BtnReacties" Content="Reacties" Style="{StaticResource MenuButtonStyle}"/>
                     <Button Click="BtnResultaten_Click" x:Name="BtnResultaten" Content="Stemwijzer Resultaten" Style="{StaticResource MenuButtonStyle}"/>
                 </StackPanel>
             </DockPanel>

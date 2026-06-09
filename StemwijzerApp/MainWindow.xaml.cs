@@ -13,9 +13,7 @@ namespace StemwijzerApp
         Pages.StandpuntenPage standpuntenPage = new Pages.StandpuntenPage();
         Pages.VerkiezingenPage verkiezingenPage = new Pages.VerkiezingenPage();
         Pages.GebruikersPage gebruikersPage = new Pages.GebruikersPage();
-        Pages.ReactiesPage reactiesPage = new Pages.ReactiesPage();
         Pages.StandpuntenarrangementenPage standpuntenarrangementenPage = new Pages.StandpuntenarrangementenPage();
-        Pages.NieuwsPage nieuwsPage = new Pages.NieuwsPage();
         Pages.BeheerdersPage beheerdersPage = new Pages.BeheerdersPage();
         Pages.ResultatenPage resultatenPage = new Pages.ResultatenPage();
         public MainWindow()
@@ -60,12 +58,6 @@ namespace StemwijzerApp
 
         }
 
-        private void BtnReacties_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.Navigate(reactiesPage);
-            UpdateMenuStyles(BtnReacties);
-
-        }
 
         private void UpdateMenuStyles(Button geselecteerdeKnop)
         {
@@ -85,12 +77,6 @@ namespace StemwijzerApp
         {
             MainFrame.Navigate(standpuntenarrangementenPage);
             UpdateMenuStyles(BtnStandpuntenarrangementen);
-        }
-
-        private void BtnNieuws_Click(object sender, RoutedEventArgs e)
-        {
-            MainFrame.Navigate(nieuwsPage);
-            UpdateMenuStyles(BtnNieuws);
         }
 
         private void BtnBeheerders_Click(object sender, RoutedEventArgs e)
