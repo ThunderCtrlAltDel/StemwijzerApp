@@ -400,5 +400,36 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="TypeRadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="RadioButtonBorder" 
+                        Background="White" 
+                        BorderBrush="#E2E8F0" 
+                        BorderThickness="1" 
+                        CornerRadius="6" 
+                        Padding="10" 
+                        Cursor="Hand"
+                        SnapsToDevicePixels="True">
+                            <ContentPresenter x:Name="ContentPresenter" 
+                                      HorizontalAlignment="Center" 
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" TargetName="RadioButtonBorder" Value="#CBD5E1"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" TargetName="RadioButtonBorder" Value="#F8FAFC"/>
+                                <Setter Property="BorderBrush" TargetName="RadioButtonBorder" Value="#3B82F6"/>
+                                <Setter Property="BorderThickness" TargetName="RadioButtonBorder" Value="1.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Application.Resources>
 </Application>

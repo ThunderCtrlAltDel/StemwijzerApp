@@ -111,10 +111,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\NieuwsPage.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Pages\PartijDetailPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -153,9 +149,6 @@
     </Compile>
     <Compile Include="Pages\GebruikersPage.xaml.cs">
       <DependentUpon>GebruikersPage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\NieuwsPage.xaml.cs">
-      <DependentUpon>NieuwsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PartijDetailPage.xaml.cs">
       <DependentUpon>PartijDetailPage.xaml</DependentUpon>
