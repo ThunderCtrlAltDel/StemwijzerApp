@@ -33,10 +33,21 @@ namespace StemwijzerApp.Pages
                 new Partij("SGP", "Staatkundig Gereformeerde Partij", "Orthodox-protestantse partij", (Brush)(new BrushConverter().ConvertFrom("#FF9800"))),
                 new Partij("DENK", "DENK", "Sociaaldemocratische migrantenpartij", (Brush)(new BrushConverter().ConvertFrom("#00BCD4")))
             };
+
+
         }
 
         private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+        }
+
+        private void BekijkPartij_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is Partij partij)
+            {
+                var detailPage = new PartijDetailPage(partij);
+                NavigationService?.Navigate(detailPage);
+            }
         }
     }
 
@@ -54,5 +65,7 @@ namespace StemwijzerApp.Pages
             Beschrijving = beschrijving;
             Kleur = kleur;
         }
+
+
     }
 }

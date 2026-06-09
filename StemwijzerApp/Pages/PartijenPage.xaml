@@ -68,7 +68,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
+                                <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkPartij_Click" />
                                 <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" />
                                 <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" />
                             </StackPanel>
