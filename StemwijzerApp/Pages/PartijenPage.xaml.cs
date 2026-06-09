@@ -55,4 +55,18 @@ namespace StemwijzerApp.Pages
             Kleur = kleur;
         }
     }
+}    public class VoorbeeldPartij
+    {
+        public string Afkorting { get; set; }
+        public string Naam { get; set; }
+        public string Beschrijving { get; set; }
+        public string HexKleur { get; set; }
+    }
+}
+    {
+        public string Afkorting { get; set; }
+        public string Naam { get; set; }
+        public string Beschrijving { get; set; }
+        public string HexKleur { get; set; }
+    }
 }
