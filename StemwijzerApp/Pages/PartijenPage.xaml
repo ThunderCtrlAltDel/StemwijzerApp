@@ -7,92 +7,112 @@
       d:DesignHeight="800" d:DesignWidth="1300"
       Title="PartijenPage" Background="#EDF2F4">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Grid Grid.Row="0" HorizontalAlignment="Stretch">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Politieke Partijen"
-                       FontSize="24"
-                       VerticalAlignment="Center"
-                       Grid.Column="0"
-                       Foreground="#2D3748"/>
+                <TextBlock Text="Politieke Partijen"
+                           FontSize="24"
+                           VerticalAlignment="Center"
+                           Grid.Column="0"
+                           Foreground="#2D3748"/>
 
-            <Button Content="+ Nieuwe Partij"
-                    Style="{StaticResource HeaderAccentButtonStyle}"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"/>
+                <Button Content="+ Nieuwe Partij"
+                        Style="{StaticResource HeaderAccentButtonStyle}"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Click="NieuwePartij_Click"/>
+            </Grid>
+
+            <Border x:Name="NieuwePartijForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="LblFormTitel" Text="Nieuwe Partij Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,0,20">
+                            <TextBlock Text="Naam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtNaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,0,20">
+                            <TextBlock Text="Afkorting" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtAfkorting" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Beschrijving" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtBeschrijving" Style="{StaticResource ModernTextBoxStyle}" Height="90" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10,10" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Kleur (Klik op het vakje om te kiezen)" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <Grid HorizontalAlignment="Left" Margin="0,0,0,25">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border x:Name="BdrKleurVoorbeeld" Background="#FF6B00" CornerRadius="6" Width="90" Height="40" Grid.Column="0" Cursor="Hand" MouseDown="BdrKleurVoorbeeld_MouseDown"/>
+                        <TextBox x:Name="TxtKleurHex" Width="110" Height="40" VerticalContentAlignment="Center" Text="#FF6B00" Style="{StaticResource ModernTextBoxStyle}" Grid.Column="2" TextChanged="TxtKleurHex_TextChanged"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnToevoegen" Content="Toevoegen" Style="{StaticResource FormPrimaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <DataGrid Grid.Row="2"
+                      Style="{StaticResource ModernDataGridStyle}"
+                      ItemsSource="{Binding Partijen}"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      AutoGenerateColumns="False">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Afkorting" Binding="{Binding Afkorting}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Naam" Binding="{Binding Naam}" Width="3.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="4*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Kleur" Width="1.5*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Kleur}" Width="24" Height="24" CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkPartij_Click" CommandParameter="{Binding}"/>
+                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkPartij_Click" CommandParameter="{Binding}"/>
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderPartij_Click" CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
-
-        <!-- DataGrid -->
-        <DataGrid Grid.Row="2"
-                  Style="{StaticResource ModernDataGridStyle}"
-                  ItemsSource="{Binding Partijen}"
-                  SelectionChanged="DataGrid_SelectionChanged"
-                  AutoGenerateColumns="False">
-
-            <DataGrid.Columns>
-
-                <DataGridTextColumn Header="Afkorting"
-                                    Binding="{Binding Afkorting}"
-                                    Width="1.5*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
-
-                <DataGridTextColumn Header="Naam"
-                                    Binding="{Binding Naam}"
-                                    Width="3.5*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
-
-                <DataGridTextColumn Header="Beschrijving"
-                                    Binding="{Binding Beschrijving}"
-                                    Width="4*"
-                                    ElementStyle="{StaticResource DataGridTextStyle}"/>
-
-                <DataGridTemplateColumn Header="Kleur" Width="1.5*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Background="{Binding Kleur}"
-                                    Width="24" Height="24"
-                                    CornerRadius="4"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Margin="15,0"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-
-                <DataGridTemplateColumn Header="Acties" Width="Auto">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center"
-                                        Margin="10,0">
-                                <Button Content="👁"
-                                        Style="{StaticResource DataGridActionButtonStyle}"
-                                        Foreground="#2D3748"/>
-                                <Button Content="✎"
-                                        Style="{StaticResource DataGridActionButtonStyle}"
-                                        Foreground="#2D3748"/>
-                                <Button Content="🗑"
-                                        Style="{StaticResource DataGridActionButtonStyle}"
-                                        Foreground="Red"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-
-            </DataGrid.Columns>
-        </DataGrid>
-
-    </Grid>
+    </ScrollViewer>
 </Page>
