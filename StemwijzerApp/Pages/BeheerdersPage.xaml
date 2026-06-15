@@ -55,16 +55,20 @@
                         <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,25">
                             <TextBlock x:Name="LblWachtwoordTitel" Text="Wachtwoord" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
                             <Grid>
-                                <PasswordBox x:Name="TxtWachtwoord" Height="40" VerticalContentAlignment="Center" Padding="10,0,35,0"/>
-                                <TextBlock Text="👁" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="#A0AEC0" FontSize="16" Cursor="Hand"/>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox x:Name="TxtWachtwoord" Grid.Column="0" Height="40" VerticalContentAlignment="Center" Padding="10,0,10,0" Visibility="Visible"/>
+                                <TextBox x:Name="TxtWachtwoordZichtbaar" Grid.Column="0" Height="40" VerticalContentAlignment="Center" Padding="10,0,10,0" Style="{StaticResource ModernTextBoxStyle}" Visibility="Collapsed"/>
+                                <Button x:Name="BtnWachtwoordZichtbaar" Content="👁️" Grid.Column="1" Width="40" Height="40" Background="Transparent" BorderBrush="{x:Null}" Foreground="#A0AEC0" FontSize="16" Cursor="Hand" Click="BtnWachtwoordZichtbaar_Click"/>
                             </Grid>
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,25">
                             <TextBlock Text="Rol" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
                             <ComboBox x:Name="CmbRol" Style="{StaticResource ModernComboBoxStyle}" Height="40">
-                                <ComboBoxItem Content="Beheerder" IsSelected="True"/>
-                                <ComboBoxItem Content="Hoofdbeheerder"/>
+                                <ComboBoxItem Content="Admin" IsSelected="True"/>
                             </ComboBox>
                         </StackPanel>
                     </Grid>

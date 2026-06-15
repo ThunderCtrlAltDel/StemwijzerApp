@@ -60,8 +60,16 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,20">
-                            <TextBlock Text="Gebruikersnaam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                            <TextBox x:Name="TxtGebruikersnaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                            <TextBlock x:Name="LblWachtwoordTitel" Text="Wachtwoord" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox x:Name="TxtWachtwoord" Grid.Column="0" Height="40" VerticalContentAlignment="Center" Padding="10,0,10,0" Visibility="Visible"/>
+                                <TextBox x:Name="TxtWachtwoordZichtbaar" Grid.Column="0" Height="40" VerticalContentAlignment="Center" Padding="10,0,10,0" Style="{StaticResource ModernTextBoxStyle}" Visibility="Collapsed"/>
+                                <Button x:Name="BtnWachtwoordZichtbaar" Content="👁️" Grid.Column="1" Width="40" Height="40" Background="Transparent" BorderBrush="{x:Null}" Foreground="#A0AEC0" FontSize="16" Cursor="Hand" Click="BtnWachtwoordZichtbaar_Click"/>
+                            </Grid>
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,20">
@@ -75,17 +83,9 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,0,25">
-                            <TextBlock Text="Wachtwoord" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                            <Grid>
-                                <PasswordBox x:Name="TxtWachtwoord" Height="40" VerticalContentAlignment="Center" Padding="10,0,35,0"/>
-                                <TextBlock Text="👁" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="#A0AEC0" FontSize="16" Cursor="Hand"/>
-                            </Grid>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="3" Grid.Column="2" Margin="0,0,0,25">
                             <TextBlock Text="Rol" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
                             <ComboBox x:Name="CmbRol" Style="{StaticResource ModernComboBoxStyle}" Height="40">
-                                <ComboBoxItem Content="Gebruiker" IsSelected="True"/>
+                                <ComboBoxItem Content="User" IsSelected="True"/>
                                 <ComboBoxItem Content="Admin"/>
                             </ComboBox>
                         </StackPanel>
@@ -103,24 +103,25 @@
                       ItemsSource="{Binding Gebruikers}"
                       SelectionChanged="DataGrid_SelectionChanged"
                       VerticalScrollBarVisibility="Disabled"
-                      PreviewMouseWheel="DataGrid_PreviewMouseWheel">
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      AutoGenerateColumns="False">
 
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Naam" Width="2*">
+                    <DataGridTextColumn Header="Naam" Binding="{Binding VolledigeNaam}" Width="2.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Geboortedatum (Leeftijd)" Width="2.5*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Style="{StaticResource DataGridTextStyle}" VerticalAlignment="Center">
-                                    <Run Text="{Binding Voornaam}"/>
+                                    <Run Text="{Binding GeboortedatumFormaat}"/>
                                     <Run Text=" "/>
-                                    <Run Text="{Binding Achternaam}"/>
+                                    <Run Text="{Binding LeeftijdHaakjes}"/>
                                 </TextBlock>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Gebruikersnaam" Binding="{Binding Gebruikersnaam}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
-                    <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
-                    <DataGridTextColumn Header="Geboortedatum" Binding="{Binding Geboortedatum}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="Woonplaats" Binding="{Binding Woonplaats}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
 
                     <DataGridTemplateColumn Header="Rol" Width="1.5*">
@@ -139,7 +140,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkGebruiker_Click" CommandParameter="{Binding}" />
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkGebruiker_Click" CommandParameter="{Binding}"/>
                                     <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderGebruiker_Click" CommandParameter="{Binding}" />
                                 </StackPanel>
                             </DataTemplate>
