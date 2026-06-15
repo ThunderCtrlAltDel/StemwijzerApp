@@ -22,17 +22,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Politieke Partijen"
-                           FontSize="24"
-                           VerticalAlignment="Center"
-                           Grid.Column="0"
-                           Foreground="#2D3748"/>
-
-                <Button Content="+ Nieuwe Partij"
-                        Style="{StaticResource HeaderAccentButtonStyle}"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Click="NieuwePartij_Click"/>
+                <TextBlock Text="Politieke Partijen" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"/>
+                <Button Content="+ Nieuwe Partij" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwePartij_Click"/>
             </Grid>
 
             <Border x:Name="NieuwePartijForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">

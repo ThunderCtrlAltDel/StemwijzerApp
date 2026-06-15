@@ -1,9 +1,8 @@
-﻿using System;
+﻿using MySqlConnector;
+using PlotTwist;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,19 +12,10 @@ namespace StemwijzerApp.Pages
     {
         public ObservableCollection<VoorbeeldResultaat> Resultaten { get; set; }
         public ObservableCollection<ResultaatGebruikerMock> BeschikbareGebruikers { get; set; }
+        public ObservableCollection<VerkiezingMock> BeschikbareVerkiezingen { get; set; }
+        public ObservableCollection<StellingInvulMock> HuidigeStellingen { get; set; }
         private VoorbeeldResultaat _geselecteerdtResultaat;
-
-        private readonly string _resultatenPad = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "StemwijzerApp",
-            "resultaten.json"
-        );
-
-        private readonly string _gebruikersPad = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "StemwijzerApp",
-            "gebruikers.json"
-        );
+        private DatabaseHandler _dbHandler = new DatabaseHandler();
 
         public ResultatenPage()
         {
@@ -39,6 +29,7 @@ namespace StemwijzerApp.Pages
         private void ResultatenPage_Loaded(object sender, RoutedEventArgs e)
         {
             LoadGebruikersData();
+            LoadVerkiezingenData();
             LoadResultaten();
 
             DataContext = null;
@@ -47,70 +38,97 @@ namespace StemwijzerApp.Pages
 
         private void LoadGebruikersData()
         {
+            System.Diagnostics.Debug.WriteLine("Plaatje reference check: afbeelding.png");
             BeschikbareGebruikers = new ObservableCollection<ResultaatGebruikerMock>();
+            string query = "SELECT id, name, email FROM users WHERE role = 'user'";
+
             try
             {
-                if (File.Exists(_gebruikersPad))
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                 {
-                    string jsonString = File.ReadAllText(_gebruikersPad);
-                    var geladenGebruikers = JsonSerializer.Deserialize<List<ResultaatGebruikerMock>>(jsonString);
-                    if (geladenGebruikers != null)
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
                     {
-                        foreach (var g in geladenGebruikers)
+                        BeschikbareGebruikers.Add(new ResultaatGebruikerMock
                         {
-                            BeschikbareGebruikers.Add(g);
-                        }
+                            Id = reader.GetInt32("id"),
+                            VolledigeNaam = reader.GetString("name"),
+                            Email = reader.GetString("email")
+                        });
                     }
                 }
             }
-            catch { }
-
-            if (BeschikbareGebruikers.Count == 0)
+            catch (Exception ex)
             {
-                BeschikbareGebruikers.Add(new ResultaatGebruikerMock { Voornaam = "Jan", Achternaam = "Jansen", Gebruikersnaam = "gebruiker1", Email = "gebruiker@voorbeeld.nl" });
+                MessageBox.Show($"Fout bij laden gebruikers: {ex.Message}");
+            }
+        }
+
+        private void LoadVerkiezingenData()
+        {
+            BeschikbareVerkiezingen = new ObservableCollection<VerkiezingMock>();
+            string query = "SELECT id, name FROM elections";
+
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        BeschikbareVerkiezingen.Add(new VerkiezingMock
+                        {
+                            Id = reader.GetInt32("id"),
+                            Name = reader.GetString("name")
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij laden verkiezingen: {ex.Message}");
             }
         }
 
         private void LoadResultaten()
         {
+            Resultaten = new ObservableCollection<VoorbeeldResultaat>();
+            string query = @"SELECT DISTINCT u.id AS user_id, u.name AS user_name, u.email AS user_email, e.id AS election_id, e.name AS election_name 
+                             FROM user_answers ua
+                             JOIN users u ON ua.user_id = u.id
+                             JOIN questions q ON ua.question_id = q.id
+                             JOIN questionnaires qn ON q.questionnaire_id = qn.id
+                             JOIN elections e ON qn.election_id = e.id";
+
             try
             {
-                if (File.Exists(_resultatenPad))
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                 {
-                    string jsonString = File.ReadAllText(_resultatenPad);
-                    Resultaten = JsonSerializer.Deserialize<ObservableCollection<VoorbeeldResultaat>>(jsonString);
-                }
-            }
-            catch { }
-
-            if (Resultaten == null || Resultaten.Count == 0)
-            {
-                Resultaten = new ObservableCollection<VoorbeeldResultaat>
-                {
-                    new VoorbeeldResultaat
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
                     {
-                        VolledigeNaam = "Jan Jansen (gebruiker1)",
-                        Verkiezing = "Tweede Kamerverkiezingen 2025",
-                        Datum = "09-06-2026",
-                        Status = "Ingevuld"
+                        Resultaten.Add(new VoorbeeldResultaat
+                        {
+                            UserId = reader.GetInt32("user_id"),
+                            ElectionId = reader.GetInt32("election_id"),
+                            VolledigeNaam = reader.GetString("user_name"),
+                            Email = reader.GetString("user_email"),
+                            Verkiezing = reader.GetString("election_name"),
+                            Datum = DateTime.Now.ToString("dd-MM-yyyy"),
+                            Status = "Ingevuld"
+                        });
                     }
-                };
-                SaveResultaten();
-            }
-        }
-
-        private void SaveResultaten()
-        {
-            try
-            {
-                string mapPad = Path.GetDirectoryName(_resultatenPad);
-                if (!Directory.Exists(mapPad)) Directory.CreateDirectory(mapPad);
-                string jsonString = JsonSerializer.Serialize(Resultaten, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_resultatenPad, jsonString);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het opslaan: {ex.Message}");
+                MessageBox.Show($"Fout bij laden resultaten: {ex.Message}");
             }
         }
 
@@ -118,10 +136,9 @@ namespace StemwijzerApp.Pages
 
         private void NieuwResultaat_Click(object sender, RoutedEventArgs e)
         {
-            LoadGebruikersData();
             _geselecteerdtResultaat = null;
-            CmbGebruiker.SelectedIndex = 0;
-            TxtVerkiezing.Clear();
+            if (CmbGebruiker.Items.Count > 0) CmbGebruiker.SelectedIndex = 0;
+            if (CmbVerkiezing.Items.Count > 0) CmbVerkiezing.SelectedIndex = 0;
 
             LblFormTitel.Text = "Nieuw Resultaat Toevoegen";
             BtnToevoegen.Content = "Toevoegen en Antwoorden Invullen";
@@ -136,89 +153,146 @@ namespace StemwijzerApp.Pages
         private void Toevoegen_Click(object sender, RoutedEventArgs e)
         {
             var gekozenGebruiker = CmbGebruiker.SelectedItem as ResultaatGebruikerMock;
-            if (gekozenGebruiker == null)
+            var gekozenVerkiezing = CmbVerkiezing.SelectedItem as VerkiezingMock;
+
+            if (gekozenGebruiker == null || gekozenVerkiezing == null)
             {
-                MessageBox.Show("Selecteer een gebruiker.");
+                MessageBox.Show("Selecteer een gebruiker en een verkiezing.");
                 return;
             }
-
-            string verkiezingText = TxtVerkiezing.Text;
-            if (string.IsNullOrWhiteSpace(verkiezingText))
-            {
-                MessageBox.Show("Vul een verkiezing in.");
-                return;
-            }
-
-            string naamText = gekozenGebruiker.Voornaam + " " + gekozenGebruiker.Achternaam + " (" + gekozenGebruiker.Gebruikersnaam + ")";
 
             if (_geselecteerdtResultaat == null)
             {
                 _geselecteerdtResultaat = new VoorbeeldResultaat
                 {
-                    VolledigeNaam = naamText,
-                    Verkiezing = verkiezingText,
+                    UserId = gekozenGebruiker.Id,
+                    ElectionId = gekozenVerkiezing.Id,
+                    VolledigeNaam = gekozenGebruiker.VolledigeNaam,
+                    Email = gekozenGebruiker.Email,
+                    Verkiezing = gekozenVerkiezing.Name,
                     Datum = DateTime.Now.ToString("dd-MM-yyyy"),
                     Status = "In afwachting"
                 };
-                Resultaten.Add(_geselecteerdtResultaat);
-            }
-            else
-            {
-                _geselecteerdtResultaat.VolledigeNaam = naamText;
-                _geselecteerdtResultaat.Verkiezing = verkiezingText;
             }
 
-            SaveResultaten();
+            LblResultaatGebruiker.Text = gekozenGebruiker.VolledigeNaam;
+            LblResultaatEmail.Text = gekozenGebruiker.Email;
+            LblResultaatVerkiezing.Text = gekozenVerkiezing.Name;
 
-            LblResultaatGebruiker.Text = gekozenGebruiker.Voornaam + " " + gekozenGebruiker.Achternaam + " (" + gekozenGebruiker.Gebruikersnaam + ")";
-            LblResultaatEmail.Text = string.IsNullOrEmpty(gekozenGebruiker.Email) ? "gebruiker@voorbeeld.nl" : gekozenGebruiker.Email;
-            LblResultaatVerkiezing.Text = verkiezingText;
+            LoadStellingenVoorVerkiezing(gekozenVerkiezing.Id, gekozenGebruiker.Id);
 
             NieuwResultaatForm.Visibility = Visibility.Collapsed;
             MainDataGrid.Visibility = Visibility.Collapsed;
             AntwoordenInvullenForm.Visibility = Visibility.Visible;
         }
 
+        private void LoadStellingenVoorVerkiezing(int electionId, int userId)
+        {
+            HuidigeStellingen = new ObservableCollection<StellingInvulMock>();
+            string query = @"SELECT q.id, q.question, q.weight, ua.answer 
+                             FROM questions q
+                             JOIN questionnaires qn ON q.questionnaire_id = qn.id
+                             LEFT JOIN user_answers ua ON q.id = ua.question_id AND ua.user_id = @userId
+                             WHERE qn.election_id = @electionId";
+
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@electionId", electionId);
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        var stelling = new StellingInvulMock
+                        {
+                            Id = reader.GetInt32("id"),
+                            Question = reader.GetString("question"),
+                            Weight = reader.GetInt32("weight"),
+                            IdString = "Q" + reader.GetInt32("id")
+                        };
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("answer")))
+                        {
+                            int ans = reader.GetInt32("answer");
+                            if (ans == 2) stelling.IsEens = true;
+                            else if (ans == 1) stelling.IsNeutraal = true;
+                            else if (ans == 0) stelling.IsOneens = true;
+                        }
+                        else
+                        {
+                            stelling.IsNeutraal = true;
+                        }
+
+                        HuidigeStellingen.Add(stelling);
+                    }
+                }
+                StellingenItemsControl.ItemsSource = HuidigeStellingen;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij laden stellingen: {ex.Message}");
+            }
+        }
+
         private void OpslaanAntwoorden_Click(object sender, RoutedEventArgs e)
         {
-            if (_geselecteerdtResultaat != null)
+            if (_geselecteerdtResultaat == null || HuidigeStellingen == null) return;
+
+            string query = @"INSERT INTO user_answers (user_id, question_id, answer) 
+                             VALUES (@userId, @questionId, @answer)
+                             ON DUPLICATE KEY UPDATE answer = @answer";
+
+            try
             {
-                _geselecteerdtResultaat.Status = "Ingevuld";
-                SaveResultaten();
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    foreach (var stelling in HuidigeStellingen)
+                    {
+                        int antwoordWaarde = 1;
+                        if (stelling.IsEens) antwoordWaarde = 2;
+                        else if (stelling.IsOneens) antwoordWaarde = 0;
+
+                        MySqlCommand cmd = new MySqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@userId", _geselecteerdtResultaat.UserId);
+                        cmd.Parameters.AddWithValue("@questionId", stelling.Id);
+                        cmd.Parameters.AddWithValue("@answer", antwoordWaarde);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij opslaan antwoorden: {ex.Message}");
+            }
+
             ClearForm();
-            ResultatenPage_Loaded(null, null);
+            LoadResultaten();
+            DataContext = null;
+            DataContext = this;
         }
 
         private void BewerkResultaat_Click(object sender, RoutedEventArgs e)
         {
-            LoadGebruikersData();
             Button knop = sender as Button;
             if (knop != null)
             {
                 _geselecteerdtResultaat = knop.CommandParameter as VoorbeeldResultaat;
                 if (_geselecteerdtResultaat != null)
                 {
-                    TxtVerkiezing.Text = _geselecteerdtResultaat.Verkiezing;
-                    CmbGebruiker.SelectedIndex = 0;
-                    for (int i = 0; i < CmbGebruiker.Items.Count; i++)
-                    {
-                        var g = CmbGebruiker.Items[i] as ResultaatGebruikerMock;
-                        if (g != null)
-                        {
-                            string matchNaam = g.Voornaam + " " + g.Achternaam + " (" + g.Gebruikersnaam + ")";
-                            if (matchNaam == _geselecteerdtResultaat.VolledigeNaam)
-                            {
-                                CmbGebruiker.SelectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
+                    LblResultaatGebruiker.Text = _geselecteerdtResultaat.VolledigeNaam;
+                    LblResultaatEmail.Text = _geselecteerdtResultaat.Email;
+                    LblResultaatVerkiezing.Text = _geselecteerdtResultaat.Verkiezing;
 
-                    LblFormTitel.Text = "Resultaat Bewerken";
-                    BtnToevoegen.Content = "Opslaan";
-                    AntwoordenInvullenForm.Visibility = Visibility.Collapsed;
-                    NieuwResultaatForm.Visibility = Visibility.Visible;
+                    LoadStellingenVoorVerkiezing(_geselecteerdtResultaat.ElectionId, _geselecteerdtResultaat.UserId);
+
+                    NieuwResultaatForm.Visibility = Visibility.Collapsed;
+                    MainDataGrid.Visibility = Visibility.Collapsed;
+                    AntwoordenInvullenForm.Visibility = Visibility.Visible;
                 }
             }
         }
@@ -231,17 +305,39 @@ namespace StemwijzerApp.Pages
                 VoorbeeldResultaat item = knop.CommandParameter as VoorbeeldResultaat;
                 if (item != null)
                 {
-                    if (_geselecteerdtResultaat == item) ClearForm();
-                    Resultaten.Remove(item);
-                    SaveResultaten();
+                    MessageBoxResult res = MessageBox.Show("Wil je alle antwoorden van deze gebruiker voor deze verkiezing verwijderen?", "Bevestigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (res == MessageBoxResult.Yes)
+                    {
+                        string query = @"DELETE ua FROM user_answers ua
+                                         JOIN questions q ON ua.question_id = q.id
+                                         JOIN questionnaires qn ON q.questionnaire_id = qn.id
+                                         WHERE ua.user_id = @userId AND qn.election_id = @electionId";
+
+                        try
+                        {
+                            using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                            {
+                                conn.Open();
+                                MySqlCommand cmd = new MySqlCommand(query, conn);
+                                cmd.Parameters.AddWithValue("@userId", item.UserId);
+                                cmd.Parameters.AddWithValue("@electionId", item.ElectionId);
+                                cmd.ExecuteNonQuery();
+                            }
+                            Resultaten.Remove(item);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Fout bij verwijderen: {ex.Message}");
+                        }
+                    }
                 }
             }
         }
 
         private void ClearForm()
         {
-            CmbGebruiker.SelectedIndex = 0;
-            TxtVerkiezing.Clear();
+            if (CmbGebruiker.Items.Count > 0) CmbGebruiker.SelectedIndex = 0;
+            if (CmbVerkiezing.Items.Count > 0) CmbVerkiezing.SelectedIndex = 0;
             _geselecteerdtResultaat = null;
             NieuwResultaatForm.Visibility = Visibility.Collapsed;
             AntwoordenInvullenForm.Visibility = Visibility.Collapsed;
@@ -261,19 +357,18 @@ namespace StemwijzerApp.Pages
                     Source = sender
                 };
                 var parent = ((Control)sender).Parent as UIElement;
-                if (parent != null)
-                {
-                    parent.RaiseEvent(eventArg);
-                }
+                parent?.RaiseEvent(eventArg);
             }
         }
     }
 
     public class VoorbeeldResultaat : System.ComponentModel.INotifyPropertyChanged
     {
-        private string _volledigeNaam, _verkiezing, _datum, _status;
-
+        private string _volledigeNaam, _email, _verkiezing, _datum, _status;
+        public int UserId { get; set; }
+        public int ElectionId { get; set; }
         public string VolledigeNaam { get => _volledigeNaam; set { _volledigeNaam = value; OnPropertyChanged(nameof(VolledigeNaam)); } }
+        public string Email { get => _email; set { _email = value; OnPropertyChanged(nameof(Email)); } }
         public string Verkiezing { get => _verkiezing; set { _verkiezing = value; OnPropertyChanged(nameof(Verkiezing)); } }
         public string Datum { get => _datum; set { _datum = value; OnPropertyChanged(nameof(Datum)); } }
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
@@ -284,9 +379,31 @@ namespace StemwijzerApp.Pages
 
     public class ResultaatGebruikerMock
     {
-        public string Voornaam { get; set; }
-        public string Achternaam { get; set; }
-        public string Gebruikersnaam { get; set; }
+        public int Id { get; set; }
+        public string VolledigeNaam { get; set; }
         public string Email { get; set; }
+    }
+
+    public class VerkiezingMock
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class StellingInvulMock : System.ComponentModel.INotifyPropertyChanged
+    {
+        private bool _isEens, _isNeutraal, _isOneens;
+        public int Id { get; set; }
+        public string Question { get; set; }
+        public int Weight { get; set; }
+        public string IdString { get; set; }
+        public string WeightText => $"Gewicht: {Weight}";
+
+        public bool IsEens { get => _isEens; set { _isEens = value; OnPropertyChanged(nameof(IsEens)); } }
+        public bool IsNeutraal { get => _isNeutraal; set { _isNeutraal = value; OnPropertyChanged(nameof(IsNeutraal)); } }
+        public bool IsOneens { get => _isOneens; set { _isOneens = value; OnPropertyChanged(nameof(IsOneens)); } }
+
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
 }

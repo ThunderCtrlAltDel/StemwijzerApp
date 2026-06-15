@@ -1,8 +1,8 @@
-﻿using System;
+﻿using MySqlConnector;
+using PlotTwist;
+using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,12 +14,7 @@ namespace StemwijzerApp.Pages
     {
         public ObservableCollection<VoorbeeldPartij> Partijen { get; set; }
         private VoorbeeldPartij _geselecteerdePartij;
-
-        private readonly string _bestandsPad = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "StemwijzerApp",
-            "partijen.json"
-        );
+        private DatabaseHandler _dbHandler = new DatabaseHandler();
 
         [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         private static extern bool ChooseColor(ref CHOOSECOLOR cc);
@@ -52,61 +47,38 @@ namespace StemwijzerApp.Pages
         private void PartijenPage_Loaded(object sender, RoutedEventArgs e)
         {
             LoadPartijen();
-
             DataContext = null;
             DataContext = this;
         }
 
         private void LoadPartijen()
         {
+            Partijen = new ObservableCollection<VoorbeeldPartij>();
+            string query = "SELECT id, name, abbreviation, description, color_hex FROM parties";
+
             try
             {
-                if (File.Exists(_bestandsPad))
+                _dbHandler.OpenConnection();
+                MySqlCommand command = new MySqlCommand(query, new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;Convert Zero Datetime=True;"));
+                command.Connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
                 {
-                    string jsonString = File.ReadAllText(_bestandsPad);
-                    if (!string.IsNullOrWhiteSpace(jsonString) && jsonString.Trim() != "[]")
+                    Partijen.Add(new VoorbeeldPartij
                     {
-                        Partijen = JsonSerializer.Deserialize<ObservableCollection<VoorbeeldPartij>>(jsonString);
-                    }
+                        Id = reader.GetInt32("id"),
+                        Afkorting = reader.GetString("abbreviation"),
+                        Naam = reader.GetString("name"),
+                        Beschrijving = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description"),
+                        Kleur = reader.GetString("color_hex")
+                    });
                 }
-            }
-            catch
-            {
-                Partijen = null;
-            }
-
-            if (Partijen == null || Partijen.Count < 2)
-            {
-                Partijen = new ObservableCollection<VoorbeeldPartij>
-        {
-            new VoorbeeldPartij { Afkorting = "VVD", Naam = "Volkspartij voor Vrijheid en Democratie", Beschrijving = "Liberale partij", Kleur = "#FF6B00" },
-            new VoorbeeldPartij { Afkorting = "PvdA", Naam = "Partij van de Arbeid", Beschrijving = "Sociaaldemocratische partij", Kleur = "#E31B23" },
-            new VoorbeeldPartij { Afkorting = "PVV", Naam = "Partij voor de Vrijheid", Beschrijving = "Rechtse populistische partij", Kleur = "#007BC7" },
-            new VoorbeeldPartij { Afkorting = "GL", Naam = "GroenLinks", Beschrijving = "Groene en linkse partij", Kleur = "#74BD43" },
-            new VoorbeeldPartij { Afkorting = "D66", Naam = "Democraten 66", Beschrijving = "Sociaal-liberale partij", Kleur = "#00AE41" },
-            new VoorbeeldPartij { Afkorting = "CDA", Naam = "Christen-Democratisch Appèl", Beschrijving = "Christendemocratische partij", Kleur = "#007C5C" },
-            new VoorbeeldPartij { Afkorting = "SP", Naam = "Socialistische Partij", Beschrijving = "Socialistische partij", Kleur = "#FF0000" },
-            new VoorbeeldPartij { Afkorting = "CU", Naam = "ChristenUnie", Beschrijving = "Christelijk-sociale partij", Kleur = "#00A7EB" },
-            new VoorbeeldPartij { Afkorting = "PvdD", Naam = "Partij voor de Dieren", Beschrijving = "Dierenrechtenpartij", Kleur = "#006B28" },
-            new VoorbeeldPartij { Afkorting = "FvD", Naam = "Forum voor Democratie", Beschrijving = "Rechts-conservatieve partij", Kleur = "#800000" },
-            new VoorbeeldPartij { Afkorting = "SGP", Naam = "Staatkundig Gereformeerde Partij", Beschrijving = "Orthodox-protestantse partij", Kleur = "#FF7300" }
-        };
-                SavePartijen();
-            }
-        }
-
-        private void SavePartijen()
-        {
-            try
-            {
-                string mapPad = Path.GetDirectoryName(_bestandsPad);
-                if (!Directory.Exists(mapPad)) Directory.CreateDirectory(mapPad);
-                string jsonString = JsonSerializer.Serialize(Partijen, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_bestandsPad, jsonString);
+                command.Connection.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het opslaan: {ex.Message}");
+                MessageBox.Show($"Fout bij het laden van partijen: {ex.Message}");
             }
         }
 
@@ -141,27 +113,45 @@ namespace StemwijzerApp.Pages
             string kleurText = TxtKleurHex.Text;
             if (string.IsNullOrWhiteSpace(kleurText)) kleurText = "#FF6B00";
 
+            string query = string.Empty;
+
             if (_geselecteerdePartij == null)
             {
-                Partijen.Add(new VoorbeeldPartij
-                {
-                    Naam = TxtNaam.Text,
-                    Afkorting = TxtAfkorting.Text,
-                    Beschrijving = TxtBeschrijving.Text,
-                    Kleur = kleurText
-                });
+                query = "INSERT INTO parties (name, abbreviation, description, color_hex) VALUES (@name, @abbreviation, @description, @color_hex)";
             }
             else
             {
-                _geselecteerdePartij.Naam = TxtNaam.Text;
-                _geselecteerdePartij.Afkorting = TxtAfkorting.Text;
-                _geselecteerdePartij.Beschrijving = TxtBeschrijving.Text;
-                _geselecteerdePartij.Kleur = kleurText;
+                query = "UPDATE parties SET name = @name, abbreviation = @abbreviation, description = @description, color_hex = @color_hex WHERE id = @id";
             }
 
-            SavePartijen();
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@name", TxtNaam.Text);
+                    cmd.Parameters.AddWithValue("@abbreviation", TxtAfkorting.Text);
+                    cmd.Parameters.AddWithValue("@description", TxtBeschrijving.Text);
+                    cmd.Parameters.AddWithValue("@color_hex", kleurText);
+
+                    if (_geselecteerdePartij != null)
+                    {
+                        cmd.Parameters.AddWithValue("@id", _geselecteerdePartij.Id);
+                    }
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij opslaan: {ex.Message}");
+            }
+
             ClearForm();
-            PartijenPage_Loaded(null, null);
+            LoadPartijen();
+            DataContext = null;
+            DataContext = this;
         }
 
         private void BekijkPartij_Click(object sender, RoutedEventArgs e)
@@ -209,11 +199,33 @@ namespace StemwijzerApp.Pages
         {
             Button knop = sender as Button;
             VoorbeeldPartij item = knop?.CommandParameter as VoorbeeldPartij;
+
             if (item != null)
             {
-                if (_geselecteerdePartij == item) ClearForm();
-                Partijen.Remove(item);
-                SavePartijen();
+                MessageBoxResult result = MessageBox.Show($"Weet je zeker dat je {item.Naam} wilt verwijderen?", "Bevestigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    string query = "DELETE FROM parties WHERE id = @id";
+
+                    try
+                    {
+                        using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                        {
+                            conn.Open();
+                            MySqlCommand cmd = new MySqlCommand(query, conn);
+                            cmd.Parameters.AddWithValue("@id", item.Id);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        if (_geselecteerdePartij == item) ClearForm();
+                        Partijen.Remove(item);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Fout bij verwijderen: {ex.Message}");
+                    }
+                }
             }
         }
 
@@ -306,8 +318,10 @@ namespace StemwijzerApp.Pages
 
     public class VoorbeeldPartij : System.ComponentModel.INotifyPropertyChanged
     {
+        private int _id;
         private string _naam, _afkorting, _beschrijving, _kleur;
 
+        public int Id { get => _id; set { _id = value; OnPropertyChanged(nameof(Id)); } }
         public string Naam { get => _naam; set { _naam = value; OnPropertyChanged(nameof(Naam)); } }
         public string Afkorting { get => _afkorting; set { _afkorting = value; OnPropertyChanged(nameof(Afkorting)); } }
         public string Beschrijving { get => _beschrijving; set { _beschrijving = value; OnPropertyChanged(nameof(Beschrijving)); } }
