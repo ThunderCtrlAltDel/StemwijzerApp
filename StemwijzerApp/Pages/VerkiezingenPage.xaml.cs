@@ -1,7 +1,6 @@
-﻿using System;
+﻿using MySqlConnector;
+using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,68 +10,63 @@ namespace StemwijzerApp.Pages
     {
         public ObservableCollection<VoorbeeldVerkiezing> Verkiezingen { get; set; }
         private VoorbeeldVerkiezing _geselecteerdeVerkiezing;
-
-        private readonly string _bestandsPad = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "StemwijzerApp",
-            "verkiezingen.json"
-        );
+        private DatabaseHandler _dbHandler = new DatabaseHandler();
 
         public VerkiezingenPage()
         {
             InitializeComponent();
-            LoadVerkiezingen();
             DataContext = this;
 
+            this.Loaded += VerkiezingenPage_Loaded;
             this.Unloaded += VerkiezingenPage_Unloaded;
+        }
+
+        private void VerkiezingenPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadVerkiezingen();
+            DataContext = null;
+            DataContext = this;
         }
 
         private void LoadVerkiezingen()
         {
+            Verkiezingen = new ObservableCollection<VoorbeeldVerkiezing>();
+            string query = "SELECT id, name, date, description FROM elections";
+
             try
             {
-                if (File.Exists(_bestandsPad))
-                {
-                    string jsonString = File.ReadAllText(_bestandsPad);
-                    Verkiezingen = JsonSerializer.Deserialize<ObservableCollection<VoorbeeldVerkiezing>>(jsonString);
-                }
-            }
-            catch
-            {
-            }
+                _dbHandler.OpenConnection();
+                MySqlCommand command = new MySqlCommand(query, new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;Convert Zero Datetime=True;"));
+                command.Connection.Open();
+                MySqlDataReader reader = command.ExecuteReader();
 
-            if (Verkiezingen == null)
-            {
-                Verkiezingen = new ObservableCollection<VoorbeeldVerkiezing>
+                while (reader.Read())
                 {
-                    new VoorbeeldVerkiezing
+                    string rawDescription = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description");
+                    string type = "Landelijk";
+                    string beschrijving = rawDescription;
+
+                    if (rawDescription.StartsWith("[") && rawDescription.Contains("]"))
                     {
-                        Naam = "Tweede Kamerverkiezingen 2025",
-                        Datum = "22-11-2025",
-                        Type = "Landelijk",
-                        Beschrijving = "Verkiezingen voor de Tweede Kamer"
+                        int sluitIndex = rawDescription.IndexOf("]");
+                        type = rawDescription.Substring(1, sluitIndex - 1);
+                        beschrijving = rawDescription.Substring(sluitIndex + 1).Trim();
                     }
-                };
-                SaveVerkiezingen();
-            }
-        }
 
-        private void SaveVerkiezingen()
-        {
-            try
-            {
-                string mapPad = Path.GetDirectoryName(_bestandsPad);
-                if (!Directory.Exists(mapPad))
-                {
-                    Directory.CreateDirectory(mapPad);
+                    Verkiezingen.Add(new VoorbeeldVerkiezing
+                    {
+                        Id = reader.GetInt32("id"),
+                        Naam = reader.GetString("name"),
+                        Datum = reader.GetDateTime("date").ToString("dd-MM-yyyy"),
+                        Type = type,
+                        Beschrijving = beschrijving
+                    });
                 }
-
-                string jsonString = JsonSerializer.Serialize(Verkiezingen, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_bestandsPad, jsonString);
+                command.Connection.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het opslaan: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Fout bij het laden van verkiezingen: {ex.Message}");
             }
         }
 
@@ -100,36 +94,52 @@ namespace StemwijzerApp.Pages
 
         private void Toevoegen_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(TxtNaam.Text))
+            if (string.IsNullOrWhiteSpace(TxtNaam.Text) || !DpDatum.SelectedDate.HasValue)
             {
-                MessageBox.Show("Vul tenminste een naam in.", "Melding", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Vul tenminste een naam en datum in.", "Melding", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            string datumText = DpDatum.SelectedDate.HasValue ? DpDatum.SelectedDate.Value.ToString("d-M-yyyy") : string.Empty;
-            string typeText = CmbType.SelectedIndex > 0 ? (CmbType.SelectedItem as ComboBoxItem)?.Content.ToString() : string.Empty;
+            string typeTag = (CmbType.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Landelijk";
+            string gecombineerdeBeschrijving = $"[{typeTag}] {TxtBeschrijving.Text.Trim()}";
+            string query = string.Empty;
 
             if (_geselecteerdeVerkiezing == null)
             {
-                VoorbeeldVerkiezing nieuw = new VoorbeeldVerkiezing
-                {
-                    Naam = TxtNaam.Text,
-                    Datum = datumText,
-                    Type = typeText,
-                    Beschrijving = TxtBeschrijving.Text
-                };
-                Verkiezingen.Add(nieuw);
+                query = "INSERT INTO elections (name, date, description) VALUES (@name, @date, @description)";
             }
             else
             {
-                _geselecteerdeVerkiezing.Naam = TxtNaam.Text;
-                _geselecteerdeVerkiezing.Datum = datumText;
-                _geselecteerdeVerkiezing.Type = typeText;
-                _geselecteerdeVerkiezing.Beschrijving = TxtBeschrijving.Text;
+                query = "UPDATE elections SET name = @name, date = @date, description = @description WHERE id = @id";
             }
 
-            SaveVerkiezingen();
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@name", TxtNaam.Text.Trim());
+                    cmd.Parameters.AddWithValue("@date", DpDatum.SelectedDate.Value);
+                    cmd.Parameters.AddWithValue("@description", gecombineerdeBeschrijving);
+
+                    if (_geselecteerdeVerkiezing != null)
+                    {
+                        cmd.Parameters.AddWithValue("@id", _geselecteerdeVerkiezing.Id);
+                    }
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij opslaan verkiezing: {ex.Message}");
+            }
+
             ClearForm();
+            LoadVerkiezingen();
+            DataContext = null;
+            DataContext = this;
         }
 
         private void BewerkVerkiezing_Click(object sender, RoutedEventArgs e)
@@ -155,7 +165,7 @@ namespace StemwijzerApp.Pages
                     CmbType.SelectedIndex = 0;
                     for (int i = 0; i < CmbType.Items.Count; i++)
                     {
-                        if ((CmbType.Items[i] as ComboBoxItem)?.Content.ToString() == _geselecteerdeVerkiezing.Type)
+                        if ((CmbType.Items[i] as ComboBoxItem)?.Content.ToString().Equals(_geselecteerdeVerkiezing.Type, StringComparison.OrdinalIgnoreCase) == true)
                         {
                             CmbType.SelectedIndex = i;
                             break;
@@ -177,9 +187,27 @@ namespace StemwijzerApp.Pages
                 VoorbeeldVerkiezing item = knop.CommandParameter as VoorbeeldVerkiezing;
                 if (item != null)
                 {
-                    if (_geselecteerdeVerkiezing == item) ClearForm();
-                    Verkiezingen.Remove(item);
-                    SaveVerkiezingen();
+                    MessageBoxResult result = MessageBox.Show($"Weet je zeker dat je {item.Naam} wilt verwijderen?", "Bevestigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        string query = "DELETE FROM elections WHERE id = @id";
+                        try
+                        {
+                            using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                            {
+                                conn.Open();
+                                MySqlCommand cmd = new MySqlCommand(query, conn);
+                                cmd.Parameters.AddWithValue("@id", item.Id);
+                                cmd.ExecuteNonQuery();
+                            }
+                            if (_geselecteerdeVerkiezing == item) ClearForm();
+                            Verkiezingen.Remove(item);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Fout bij verwijderen: {ex.Message}");
+                        }
+                    }
                 }
             }
         }
@@ -210,21 +238,20 @@ namespace StemwijzerApp.Pages
                     Source = sender
                 };
                 var parent = ((Control)sender).Parent as UIElement;
-                if (parent != null)
-                {
-                    parent.RaiseEvent(eventArg);
-                }
+                parent?.RaiseEvent(eventArg);
             }
         }
     }
 
     public class VoorbeeldVerkiezing : System.ComponentModel.INotifyPropertyChanged
     {
+        private int _id;
         private string _naam;
         private string _datum;
         private string _type;
         private string _beschrijving;
 
+        public int Id { get => _id; set { _id = value; OnPropertyChanged(nameof(Id)); } }
         public string Naam { get => _naam; set { _naam = value; OnPropertyChanged(nameof(Naam)); } }
         public string Datum { get => _datum; set { _datum = value; OnPropertyChanged(nameof(Datum)); } }
         public string Type { get => _type; set { _type = value; OnPropertyChanged(nameof(Type)); } }

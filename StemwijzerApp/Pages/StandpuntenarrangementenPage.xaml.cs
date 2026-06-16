@@ -1,5 +1,4 @@
 ﻿using MySqlConnector;
-using PlotTwist;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -134,7 +133,7 @@ namespace StemwijzerApp.Pages
 
                 foreach (var arr in Arrangementen)
                 {
-                    string subQuery = "SELECT id FROM questions WHERE questionnaire_id = @qnId";
+                    string subQuery = "SELECT question_id FROM questionnaire_questions WHERE questionnaire_id = @qnId";
                     using (MySqlConnection conn2 = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                     {
                         conn2.Open();
@@ -143,7 +142,7 @@ namespace StemwijzerApp.Pages
                         MySqlDataReader subReader = cmd2.ExecuteReader();
                         while (subReader.Read())
                         {
-                            arr.GeselecteerdeIds.Add(subReader.GetInt32("id"));
+                            arr.GeselecteerdeIds.Add(subReader.GetInt32("question_id"));
                         }
                     }
                     arr.TriggerCountUpdate();
@@ -218,18 +217,18 @@ namespace StemwijzerApp.Pages
                 using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                 {
                     conn.Open();
-                    string resetQuery = "UPDATE questions SET questionnaire_id = 0 WHERE questionnaire_id = @qnId";
-                    MySqlCommand resetCmd = new MySqlCommand(resetQuery, conn);
-                    resetCmd.Parameters.AddWithValue("@qnId", arrangementId);
-                    resetCmd.ExecuteNonQuery();
+                    string deleteOldKoppelingen = "DELETE FROM questionnaire_questions WHERE questionnaire_id = @qnId";
+                    MySqlCommand deleteCmd = new MySqlCommand(deleteOldKoppelingen, conn);
+                    deleteCmd.Parameters.AddWithValue("@qnId", arrangementId);
+                    deleteCmd.ExecuteNonQuery();
 
-                    string updateStellingQuery = "UPDATE questions SET questionnaire_id = @qnId WHERE id = @stellingId";
+                    string insertKoppelingQuery = "INSERT INTO questionnaire_questions (questionnaire_id, question_id) VALUES (@qnId, @stellingId)";
                     foreach (var s in BeschikbareStandpunten.Where(x => x.IsGeselecteerd))
                     {
-                        MySqlCommand updateCmd = new MySqlCommand(updateStellingQuery, conn);
-                        updateCmd.Parameters.AddWithValue("@qnId", arrangementId);
-                        updateCmd.Parameters.AddWithValue("@stellingId", s.Id);
-                        updateCmd.ExecuteNonQuery();
+                        MySqlCommand insertCmd = new MySqlCommand(insertKoppelingQuery, conn);
+                        insertCmd.Parameters.AddWithValue("@qnId", arrangementId);
+                        insertCmd.Parameters.AddWithValue("@stellingId", s.Id);
+                        insertCmd.ExecuteNonQuery();
                     }
                 }
             }

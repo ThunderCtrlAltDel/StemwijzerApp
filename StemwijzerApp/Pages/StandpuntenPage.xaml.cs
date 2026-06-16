@@ -1,7 +1,6 @@
-﻿using System;
+﻿using MySqlConnector;
+using System;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,16 +10,13 @@ namespace StemwijzerApp.Pages
     {
         public ObservableCollection<VoorbeeldStandpunt> Standpunten { get; set; }
         private VoorbeeldStandpunt _geselecteerdStandpunt;
-
-        private readonly string _bestandsPad = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "StemwijzerApp",
-            "standpunten.json"
-        );
+        private DatabaseHandler _dbHandler;
+        private readonly string _connectionString = "Server=localhost;Database=stemwijzer;Uid=root;Pwd=;Convert Zero Datetime=True;";
 
         public StandpuntenPage()
         {
             InitializeComponent();
+            _dbHandler = new DatabaseHandler();
             LoadStandpunten();
             DataContext = this;
 
@@ -29,46 +25,52 @@ namespace StemwijzerApp.Pages
 
         private void LoadStandpunten()
         {
+            Standpunten = new ObservableCollection<VoorbeeldStandpunt>();
+            string query = "SELECT id, question, category, description FROM questions";
+
             try
             {
-                if (File.Exists(_bestandsPad))
+                using (MySqlConnection connection = new MySqlConnection(_connectionString))
                 {
-                    string jsonString = File.ReadAllText(_bestandsPad);
-                    Standpunten = JsonSerializer.Deserialize<ObservableCollection<VoorbeeldStandpunt>>(jsonString);
+                    connection.Open();
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        using (MySqlDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Standpunten.Add(new VoorbeeldStandpunt
+                                {
+                                    Id = reader.GetInt32("id"),
+                                    Titel = reader.IsDBNull(reader.GetOrdinal("question")) ? "" : reader.GetString("question"),
+                                    Categorie = reader.IsDBNull(reader.GetOrdinal("category")) ? "Algemeen" : reader.GetString("category"),
+                                    Beschrijving = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
+                                });
+                            }
+                        }
+                    }
                 }
-            }
-            catch
-            {
-            }
-
-            if (Standpunten == null)
-            {
-                Standpunten = new ObservableCollection<VoorbeeldStandpunt>
-                {
-                    new VoorbeeldStandpunt { Titel = "Meer windmolens bouwen", Categorie = "Klimaat", Beschrijving = "Er moeten meer windmolens gebouwd worden voor duurzame energie" },
-                    new VoorbeeldStandpunt { Titel = "Belastingverlaging middeninkomens", Categorie = "Economie", Beschrijving = "De belastingen moeten omlaag voor middeninkomens" }
-                };
-                SaveStandpunten();
-            }
-        }
-
-        private void SaveStandpunten()
-        {
-            try
-            {
-                string mapPad = Path.GetDirectoryName(_bestandsPad);
-                if (!Directory.Exists(mapPad))
-                {
-                    Directory.CreateDirectory(mapPad);
-                }
-
-                string jsonString = JsonSerializer.Serialize(Standpunten, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(_bestandsPad, jsonString);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij het opslaan van gegevens: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Fout bij ophalen standpunten uit database: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+
+            if (Standpunten.Count == 0)
+            {
+                InsertBasisData();
+            }
+        }
+
+        private void InsertBasisData()
+        {
+            string query1 = "INSERT INTO questions (question, category, description) VALUES ('Meer windmolens bouwen', 'Klimaat', 'Er moeten meer windmolens gebouwd worden voor duurzame energie')";
+            string query2 = "INSERT INTO questions (question, category, description) VALUES ('Belastingverlaging middeninkomens', 'Economie', 'De belastingen moeten omlaag voor middeninkomens')";
+
+            _dbHandler.ExecuteQuery(query1);
+            _dbHandler.ExecuteQuery(query2);
+
+            LoadStandpunten();
         }
 
         private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -104,23 +106,57 @@ namespace StemwijzerApp.Pages
 
             if (_geselecteerdStandpunt == null)
             {
-                VoorbeeldStandpunt nieuwStandpunt = new VoorbeeldStandpunt
+                string query = "INSERT INTO questions (question, category, description) VALUES (@titel, @categorie, @beschrijving)";
+
+                try
                 {
-                    Titel = TxtTitel.Text,
-                    Beschrijving = TxtBeschrijving.Text,
-                    Categorie = TxtCategorie.Text
-                };
-                Standpunten.Add(nieuwStandpunt);
+                    using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                    {
+                        connection.Open();
+                        using (MySqlCommand command = new MySqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@titel", TxtTitel.Text);
+                            command.Parameters.AddWithValue("@categorie", TxtCategorie.Text);
+                            command.Parameters.AddWithValue("@beschrijving", TxtBeschrijving.Text);
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout bij opslaan: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {
-                _geselecteerdStandpunt.Titel = TxtTitel.Text;
-                _geselecteerdStandpunt.Beschrijving = TxtBeschrijving.Text;
-                _geselecteerdStandpunt.Categorie = TxtCategorie.Text;
+                string query = "UPDATE questions SET question = @titel, category = @categorie, description = @beschrijving WHERE id = @id";
+
+                try
+                {
+                    using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                    {
+                        connection.Open();
+                        using (MySqlCommand command = new MySqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@titel", TxtTitel.Text);
+                            command.Parameters.AddWithValue("@categorie", TxtCategorie.Text);
+                            command.Parameters.AddWithValue("@beschrijving", TxtBeschrijving.Text);
+                            command.Parameters.AddWithValue("@id", _geselecteerdStandpunt.Id);
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout bij updaten: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
 
-            SaveStandpunten();
             ClearForm();
+            LoadStandpunten();
+
+            DataContext = null;
+            DataContext = this;
         }
 
         private void BekijkStandpunt_Click(object sender, RoutedEventArgs e)
@@ -176,8 +212,30 @@ namespace StemwijzerApp.Pages
                     {
                         ClearForm();
                     }
-                    Standpunten.Remove(standpuntGeklikt);
-                    SaveStandpunten();
+
+                    string query = "DELETE FROM questions WHERE id = @id";
+
+                    try
+                    {
+                        using (MySqlConnection connection = new MySqlConnection(_connectionString))
+                        {
+                            connection.Open();
+                            using (MySqlCommand command = new MySqlCommand(query, connection))
+                            {
+                                command.Parameters.AddWithValue("@id", standpuntGeklikt.Id);
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Fout bij verwijderen: {ex.Message}", "Fout", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
+                    LoadStandpunten();
+
+                    DataContext = null;
+                    DataContext = this;
                 }
             }
         }
@@ -191,6 +249,24 @@ namespace StemwijzerApp.Pages
             BtnToevoegen.Visibility = isViewing ? Visibility.Collapsed : Visibility.Visible;
             BtnAnnuleren.Visibility = isViewing ? Visibility.Collapsed : Visibility.Visible;
             BtnSluiten.Visibility = isViewing ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void DataGrid_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                e.Handled = true;
+                var eventArg = new System.Windows.Input.MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+                {
+                    RoutedEvent = UIElement.MouseWheelEvent,
+                    Source = sender
+                };
+                var parent = ((Control)sender).Parent as UIElement;
+                if (parent != null)
+                {
+                    parent.RaiseEvent(eventArg);
+                }
+            }
         }
 
         private void ClearForm()
@@ -211,10 +287,16 @@ namespace StemwijzerApp.Pages
 
     public class VoorbeeldStandpunt : System.ComponentModel.INotifyPropertyChanged
     {
+        private int _id;
         private string _titel;
         private string _categorie;
         private string _beschrijving;
 
+        public int Id
+        {
+            get => _id;
+            set { _id = value; OnPropertyChanged(nameof(Id)); }
+        }
         public string Titel
         {
             get => _titel;
