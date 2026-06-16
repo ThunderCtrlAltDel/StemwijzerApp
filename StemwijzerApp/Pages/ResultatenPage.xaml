@@ -5,10 +5,187 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="Azure"
+      d:DesignHeight="1000" d:DesignWidth="1300" Background="#EDF2F4"
       Title="ResultatenPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Resultaten"></TextBlock>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Stemwijzer Resultaten" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+                <Button Content="+ Nieuw Resultaat" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwResultaat_Click"></Button>
+            </Grid>
+
+            <Border x:Name="NieuwResultaatForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="LblFormTitel" Text="Nieuw Resultaat Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,0,25">
+                            <TextBlock Text="Gebruiker" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <ComboBox x:Name="CmbGebruiker" 
+                                      Style="{StaticResource ModernComboBoxStyle}" 
+                                      Height="40"
+                                      ItemsSource="{Binding BeschikbareGebruikers}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{Binding VolledigeNaam}"/>
+                                            <Run Text=" ("/>
+                                            <Run Text="{Binding Email}"/>
+                                            <Run Text=")"/>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,0,25">
+                            <TextBlock Text="Verkiezing" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <ComboBox x:Name="CmbVerkiezing" Style="{StaticResource ModernComboBoxStyle}" Height="40" ItemsSource="{Binding BeschikbareVerkiezingen}" DisplayMemberPath="Name"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnToevoegen" Content="Toevoegen en Antwoorden Invullen" Style="{StaticResource FormPrimaryButtonStyle}" Padding="15,0" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="AntwoordenInvullenForm" Grid.Row="2" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="7*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="25">
+                            <StackPanel>
+                                <TextBlock Text="Stemwijzer Resultaat" FontSize="20" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,15"/>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="Gebruiker:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatGebruiker" FontWeight="SemiBold" Foreground="#2D3748"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="E-mail:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatEmail" Foreground="#2D3748"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,4" FontSize="14">
+                                    <Run Text="Verkiezing:" Foreground="#A0AEC0"/>
+                                    <Run x:Name="LblResultaatVerkiezing" Foreground="#2D3748"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="BesteMatchKaart" Grid.Column="2" Background="White" CornerRadius="8" Padding="25" Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock Text="Beste Match" FontSize="16" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,0,0,15"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border x:Name="BordPartijKleur" Background="#FF6B00" CornerRadius="6" Width="45" Height="45" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TxtPartijAfkorting" Text="-" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="15,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TxtPartijNaam" Text="Geen partij" FontSize="14" Foreground="#2D3748" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TxtMatchPercentage" Text="0%" FontSize="20" Foreground="#2D3748" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid Margin="0,10,0,15">
+                        <TextBlock x:Name="LblAntwoordenTitel" Text="Antwoorden Invullen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnOpslaanAntwoorden" Content="💾 Opslaan" HorizontalAlignment="Right" Style="{StaticResource FormPrimaryButtonStyle}" Width="100" Click="OpslaanAntwoorden_Click"/>
+                        <Button x:Name="BtnSluitenDetails" Content="Sluiten" HorizontalAlignment="Right" Style="{StaticResource FormSecondaryButtonStyle}" Width="100" Click="Annuleren_Click" Visibility="Collapsed"/>
+                    </Grid>
+
+                    <ItemsControl x:Name="StellingenItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White" CornerRadius="8" Padding="25" Margin="0,0,0,15">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Question}" FontSize="15" FontWeight="Bold" Foreground="#2D3748"/>
+                                        <TextBlock Text="Geef aan in hoeverre de gebruiker het hiermee eens is." FontSize="13" Foreground="#A0AEC0" Margin="0,5,0,10"/>
+                                        <Border Background="#E2E8F0" CornerRadius="10" HorizontalAlignment="Left" Padding="12,4">
+                                            <TextBlock Text="{Binding WeightText}" FontSize="12" Foreground="#718096" FontWeight="Medium"/>
+                                        </Border>
+                                        <TextBlock Text="Antwoord van gebruiker" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,15,0,8"/>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsEens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsNeutraal, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsOneens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <DataGrid x:Name="MainDataGrid" Grid.Row="3" 
+                      Style="{StaticResource ModernDataGridStyle}" 
+                      ItemsSource="{Binding Resultaten}"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      AutoGenerateColumns="False">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Gebruiker" Binding="{Binding VolledigeNaam}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Verkiezing" Binding="{Binding Verkiezing}" Width="4*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Datum" Binding="{Binding Datum}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Status" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="#EAEAEA" Height="24" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,0" Margin="15,0">
+                                    <TextBlock Text="{Binding Status}" Foreground="#2D3748" FontSize="13" VerticalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkResultaat_Click" CommandParameter="{Binding}" />
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderResultaat_Click" CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Page>

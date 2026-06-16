@@ -8,7 +8,111 @@
       d:DesignHeight="800" d:DesignWidth="1300" Background="BlanchedAlmond"
       Title="StandpuntenarrangementenPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Standpuntenarrangementen"></TextBlock>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Standpuntenarrangementen" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+                <Button Content="+ Nieuw Arrangement" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwArrangement_Click"></Button>
+            </Grid>
+
+            <Border x:Name="NieuwArrangementForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="LblFormTitel" Text="Nieuw Arrangement Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Naam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtNaam" Style="{StaticResource ModernTextBoxStyle}" Height="40" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Gekoppelde Verkiezing" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <ComboBox x:Name="CmbVerkiezing" 
+                              Style="{StaticResource ModernComboBoxStyle}" 
+                              Height="40" 
+                              Margin="0,0,0,20"
+                              ItemsSource="{Binding BeschikbareVerkiezingen}"
+                              DisplayMemberPath="Naam"/>
+
+                    <TextBlock Text="Standpunten in dit arrangement" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <Border BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Background="#EBE8E6" Padding="15,10" Margin="0,0,0,8">
+                        <ListBox x:Name="LstStandpunten" Height="180" BorderThickness="0" Background="Transparent" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsGeselecteerd, Mode=TwoWay}" Margin="0,6" VerticalContentAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Titel}" FontSize="14" FontWeight="Bold" Foreground="#2D3748"/>
+                                            <TextBlock Text="{Binding GewichtText, StringFormat=' ({0})'}" Foreground="#A0AEC0" FontSize="13" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </CheckBox>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+
+                    <TextBlock x:Name="LblAantalGeselecteerd" Text="0 standpunt(en) geselecteerd" FontSize="12" Foreground="#A0AEC0" Margin="5,0,0,25"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnToevoegen" Content="Toevoegen" Style="{StaticResource FormPrimaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <DataGrid Grid.Row="2" 
+                      Style="{StaticResource ModernDataGridStyle}" 
+                      ItemsSource="{Binding Arrangementen}"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      AutoGenerateColumns="False">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Naam" Binding="{Binding Naam}" Width="3*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Gekoppelde Verkiezing" Width="3*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
+                                    <TextBlock Text="🔗" Foreground="#718096" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Verkiezing}" Style="{StaticResource DataGridTextStyle}" Padding="0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Aantal Standpunten" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="#EAEAEA" Height="24" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,0" Margin="15,0">
+                                    <TextBlock Text="{Binding AantalText}" Foreground="#2D3748" FontSize="13" VerticalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Aangemaakt" Binding="{Binding Aangemaakt}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkArrangement_Click" CommandParameter="{Binding}" />
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderArrangement_Click" CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Page>
