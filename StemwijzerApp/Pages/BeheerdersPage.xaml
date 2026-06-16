@@ -5,8 +5,8 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
-      Title="BeheerdersPage">
+      d:DesignHeight="800" d:DesignWidth="1300" Background="Chartreuse"
+      Title="BeheerdersPage"> 
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">

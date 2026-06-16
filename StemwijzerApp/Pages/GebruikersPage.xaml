@@ -4,8 +4,8 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
-      Title="GebruikersPage">
+      d:DesignHeight="800" d:DesignWidth="1300"
+      Title="GebruikersPage" Background="Blue">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">
