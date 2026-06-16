@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1300"
-      Title="GebruikersPage" Background="Blue">
+      Title="GebruikersPage" Background="#EDF2F4">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">
@@ -70,7 +70,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Rol" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                            <ComboBox x:Name="CmbRol" Style="{StaticResource ModernComboBoxStyle}" Height="40">
+                            <ComboBox x:Name="CmbRol" Style="{StaticResource ModernComboBoxStyle}" Height="40" IsEnabled="False">
                                 <ComboBoxItem Content="user" IsSelected="True"/>
                                 <ComboBoxItem Content="admin"/>
                             </ComboBox>
@@ -106,6 +106,7 @@
                     <DataGridTextColumn Header="Naam" Binding="{Binding VolledigeNaam}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="Gebruikersnaam" Binding="{Binding Username}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Woonplaats" Binding="{Binding Woonplaats}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="Geboortedatum (Leeftijd)" Binding="{Binding GeboorteInfo}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="Rol" Binding="{Binding Rol}" Width="1*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTemplateColumn Header="Acties" Width="Auto">

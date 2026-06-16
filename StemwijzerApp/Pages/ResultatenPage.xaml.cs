@@ -106,32 +106,88 @@ namespace StemwijzerApp.Pages
         private void LoadResultaten()
         {
             Resultaten = new ObservableCollection<VoorbeeldResultaat>();
-            string query = @"SELECT DISTINCT u.id AS user_id, u.name AS user_name, u.email AS user_email, e.id AS election_id, e.name AS election_name 
+
+            string query = @"SELECT DISTINCT u.id AS user_id, u.name AS user_name, u.email AS user_email, e.id AS election_id, e.name AS election_name, qn.id AS questionnaire_id
                              FROM users u
-                             CROSS JOIN elections e
-                             JOIN questionnaires qn ON qn.election_id = e.id
-                             JOIN questionnaire_questions qq ON qq.questionnaire_id = qn.id
-                             JOIN user_answers ua ON ua.question_id = qq.question_id AND ua.user_id = u.id";
+                             JOIN user_answers ua ON u.id = ua.user_id
+                             JOIN questionnaire_questions qq ON ua.question_id = qq.question_id
+                             JOIN questionnaires qn ON qq.questionnaire_id = qn.id
+                             JOIN elections e ON qn.election_id = e.id";
 
             try
             {
+                List<VoorbeeldResultaat> potentieleResultaten = new List<VoorbeeldResultaat>();
+                Dictionary<int, List<int>> vragenPerArrangement = new Dictionary<int, List<int>>();
+
                 using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                 {
                     conn.Open();
-                    MySqlCommand cmd = new MySqlCommand(query, conn);
-                    MySqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
+
+                    string backupQuery = "SELECT questionnaire_id, question_id FROM questionnaire_questions";
+                    using (MySqlCommand backupCmd = new MySqlCommand(backupQuery, conn))
+                    using (MySqlDataReader backupReader = backupCmd.ExecuteReader())
                     {
-                        Resultaten.Add(new VoorbeeldResultaat
+                        while (backupReader.Read())
                         {
-                            UserId = reader.GetInt32("user_id"),
-                            ElectionId = reader.GetInt32("election_id"),
-                            VolledigeNaam = reader.GetString("user_name"),
-                            Email = reader.GetString("user_email"),
-                            Verkiezing = reader.GetString("election_name"),
-                            Datum = DateTime.Now.ToString("dd-MM-yyyy"),
-                            Status = "Ingevuld"
-                        });
+                            int qnId = backupReader.GetInt32("questionnaire_id");
+                            int qId = backupReader.GetInt32("question_id");
+                            if (!vragenPerArrangement.ContainsKey(qnId))
+                            {
+                                vragenPerArrangement[qnId] = new List<int>();
+                            }
+                            vragenPerArrangement[qnId].Add(qId);
+                        }
+                    }
+
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            potentieleResultaten.Add(new VoorbeeldResultaat
+                            {
+                                UserId = reader.GetInt32("user_id"),
+                                ElectionId = reader.GetInt32("election_id"),
+                                VolledigeNaam = reader.GetString("user_name"),
+                                Email = reader.GetString("user_email"),
+                                Verkiezing = reader.GetString("election_name"),
+                                Datum = DateTime.Now.ToString("dd-MM-yyyy"),
+                                Status = "Ingevuld"
+                            });
+                        }
+                    }
+
+                    foreach (var res in potentieleResultaten)
+                    {
+                        int qnId = 0;
+                        string qnQuery = "SELECT id FROM questionnaires WHERE election_id = @eId LIMIT 1";
+                        using (MySqlCommand qnCmd = new MySqlCommand(qnQuery, conn))
+                        {
+                            qnCmd.Parameters.AddWithValue("@eId", res.ElectionId);
+                            object obj = qnCmd.ExecuteScalar();
+                            if (obj != null) qnId = Convert.ToInt32(obj);
+                        }
+
+                        if (qnId > 0 && vragenPerArrangement.ContainsKey(qnId))
+                        {
+                            var benodigdeVragen = vragenPerArrangement[qnId];
+                            int beantwoordeVragenVoorDitArrangement = 0;
+
+                            string checkQuery = "SELECT COUNT(DISTINCT question_id) FROM user_answers WHERE user_id = @uId AND question_id IN (" + string.Join(",", benodigdeVragen) + ")";
+                            using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
+                            {
+                                checkCmd.Parameters.AddWithValue("@uId", res.UserId);
+                                beantwoordeVragenVoorDitArrangement = Convert.ToInt32(checkCmd.ExecuteScalar());
+                            }
+
+                            if (beantwoordeVragenVoorDitArrangement >= benodigdeVragen.Count && benodigdeVragen.Count > 0)
+                            {
+                                if (!Resultaten.Contains(res))
+                                {
+                                    Resultaten.Add(res);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -281,10 +337,7 @@ namespace StemwijzerApp.Pages
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Fout bij opslaan antwoorden: {ex.Message}");
-            }
+            catch (Exception ex) { MessageBox.Show($"Fout bij opslaan antwoorden: {ex.Message}"); }
 
             ClearForm();
             LoadResultaten();
@@ -514,6 +567,20 @@ namespace StemwijzerApp.Pages
         public string Verkiezing { get => _verkiezing; set { _verkiezing = value; OnPropertyChanged(nameof(Verkiezing)); } }
         public string Datum { get => _datum; set { _datum = value; OnPropertyChanged(nameof(Datum)); } }
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(Status)); } }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is VoorbeeldResultaat other)
+            {
+                return UserId == other.UserId && ElectionId == other.ElectionId;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (UserId, ElectionId).GetHashCode();
+        }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));

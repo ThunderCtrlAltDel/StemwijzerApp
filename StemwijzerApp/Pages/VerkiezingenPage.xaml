@@ -89,6 +89,45 @@
 
                 <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="3.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
 
+                <DataGridTemplateColumn Header="Status" Width="1.5*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Button Content="Activeren" Click="ActiveerVerkiezing_Click" CommandParameter="{Binding}" Width="85" Height="25" Background="#8A95A5" Foreground="White" FontSize="11" FontWeight="SemiBold">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsActief}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="12"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+                                <Border Background="#D4EDDA" Height="24" CornerRadius="12" HorizontalAlignment="Left" Padding="10,3" Margin="5,0">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsActief}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="● Actief" Foreground="#155724" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
                 <DataGridTemplateColumn Header="Acties" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
