@@ -31,7 +31,7 @@ namespace StemwijzerApp.Pages
                 using (MySqlConnection conn = new MySqlConnection(ConnString))
                 {
                     conn.Open();
-                    using (var cmd = new MySqlCommand("SELECT id, name, username, email, role, birthdate FROM users", conn))
+                    using (var cmd = new MySqlCommand("SELECT id, name, username, email, role, birthdate, city FROM users WHERE role = 'user'", conn))
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -51,7 +51,8 @@ namespace StemwijzerApp.Pages
                                 Username = reader.IsDBNull(reader.GetOrdinal("username")) ? "-" : reader.GetString("username"),
                                 Email = reader.IsDBNull(reader.GetOrdinal("email")) ? "-" : reader.GetString("email"),
                                 Rol = reader.IsDBNull(reader.GetOrdinal("role")) ? "user" : reader.GetString("role"),
-                                GeboorteInfo = info
+                                GeboorteInfo = info,
+                                Woonplaats = reader.IsDBNull(reader.GetOrdinal("city")) ? "-" : reader.GetString("city")
                             });
                         }
                     }
@@ -149,5 +150,6 @@ namespace StemwijzerApp.Pages
         public string Email { get; set; }
         public string Rol { get; set; }
         public string GeboorteInfo { get; set; }
+        public string Woonplaats { get; set; }
     }
 }

@@ -6,9 +6,6 @@ using System.Windows.Controls;
 
 namespace StemwijzerApp.Pages
 {
-    /// <summary>
-    /// Interaction logic for VerkiezingenPage.xaml
-    /// </summary>
     public partial class VerkiezingenPage : Page
     {
         public ObservableCollection<VoorbeeldVerkiezing> Verkiezingen { get; set; }
@@ -34,7 +31,7 @@ namespace StemwijzerApp.Pages
         private void LoadVerkiezingen()
         {
             Verkiezingen = new ObservableCollection<VoorbeeldVerkiezing>();
-            string query = "SELECT id, name, date, description FROM elections";
+            string query = "SELECT id, name, date, description, is_active FROM elections";
 
             try
             {
@@ -62,7 +59,8 @@ namespace StemwijzerApp.Pages
                         Naam = reader.GetString("name"),
                         Datum = reader.GetDateTime("date").ToString("dd-MM-yyyy"),
                         Type = type,
-                        Beschrijving = beschrijving
+                        Beschrijving = beschrijving,
+                        IsActief = reader.IsDBNull(reader.GetOrdinal("is_active")) ? false : reader.GetBoolean("is_active")
                     });
                 }
                 command.Connection.Close();
@@ -70,6 +68,44 @@ namespace StemwijzerApp.Pages
             catch (Exception ex)
             {
                 MessageBox.Show($"Fout bij het laden van verkiezingen: {ex.Message}");
+            }
+        }
+
+        private void ActiveerVerkiezing_Click(object sender, RoutedEventArgs e)
+        {
+            Button knop = sender as Button;
+            VoorbeeldVerkiezing gekozenVerkiezing = knop?.CommandParameter as VoorbeeldVerkiezing;
+
+            if (gekozenVerkiezing != null)
+            {
+                try
+                {
+                    using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                    {
+                        conn.Open();
+
+                        string deactiveerQuery = "UPDATE elections SET is_active = 0";
+                        using (MySqlCommand deactCmd = new MySqlCommand(deactiveerQuery, conn))
+                        {
+                            deactCmd.ExecuteNonQuery();
+                        }
+
+                        string activeerQuery = "UPDATE elections SET is_active = 1 WHERE id = @id";
+                        using (MySqlCommand actCmd = new MySqlCommand(activeerQuery, conn))
+                        {
+                            actCmd.Parameters.AddWithValue("@id", gekozenVerkiezing.Id);
+                            actCmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    LoadVerkiezingen();
+                    DataContext = null;
+                    DataContext = this;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fout bij activeren van verkiezing: {ex.Message}");
+                }
             }
         }
 
@@ -109,7 +145,7 @@ namespace StemwijzerApp.Pages
 
             if (_geselecteerdeVerkiezing == null)
             {
-                query = "INSERT INTO elections (name, date, description) VALUES (@name, @date, @description)";
+                query = "INSERT INTO elections (name, date, description, is_active) VALUES (@name, @date, @description, 0)";
             }
             else
             {
@@ -253,12 +289,14 @@ namespace StemwijzerApp.Pages
         private string _datum;
         private string _type;
         private string _beschrijving;
+        private bool _isActief;
 
         public int Id { get => _id; set { _id = value; OnPropertyChanged(nameof(Id)); } }
         public string Naam { get => _naam; set { _naam = value; OnPropertyChanged(nameof(Naam)); } }
         public string Datum { get => _datum; set { _datum = value; OnPropertyChanged(nameof(Datum)); } }
         public string Type { get => _type; set { _type = value; OnPropertyChanged(nameof(Type)); } }
         public string Beschrijving { get => _beschrijving; set { _beschrijving = value; OnPropertyChanged(nameof(Beschrijving)); } }
+        public bool IsActief { get => _isActief; set { _isActief = value; OnPropertyChanged(nameof(IsActief)); } }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
