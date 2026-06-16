@@ -3,12 +3,122 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1300"
       Title="GebruikersPage" Background="Blue">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Gebruikers"></TextBlock>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Gebruikers" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"/>
+                <Button Content="+ Nieuwe Gebruiker" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuweGebruiker_Click"/>
+            </Grid>
+
+            <Border x:Name="NieuweGebruikerForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="Nieuwe Gebruiker Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Voornaam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtVoornaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Achternaam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtAchternaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,20,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="E-mailadres" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtEmail" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Gebruikersnaam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtGebruikersnaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,20,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Woonplaats" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtWoonplaats" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Rol" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <ComboBox x:Name="CmbRol" Style="{StaticResource ModernComboBoxStyle}" Height="40">
+                                <ComboBoxItem Content="user" IsSelected="True"/>
+                                <ComboBoxItem Content="admin"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,20,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Geboortedatum" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <DatePicker x:Name="DpGeboortedatum" Height="40" FontSize="14"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Wachtwoord" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <PasswordBox x:Name="PbWachtwoord" Style="{StaticResource ModernPasswordBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Toevoegen" Style="{StaticResource FormPrimaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <DataGrid Grid.Row="2" 
+                      Style="{StaticResource ModernDataGridStyle}" 
+                      ItemsSource="{Binding Gebruikers, UpdateSourceTrigger=PropertyChanged}"
+                      AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Naam" Binding="{Binding VolledigeNaam}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Gebruikersnaam" Binding="{Binding Username}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="E-mail" Binding="{Binding Email}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Geboortedatum (Leeftijd)" Binding="{Binding GeboorteInfo}" Width="2*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTextColumn Header="Rol" Binding="{Binding Rol}" Width="1*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderGebruiker_Click" CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Page>

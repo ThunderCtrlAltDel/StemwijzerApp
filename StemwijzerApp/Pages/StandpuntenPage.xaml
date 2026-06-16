@@ -5,10 +5,97 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:StemwijzerApp.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="800" d:DesignWidth="1300"
-      Title="StandpuntenPage" Background="Chocolate">
+      d:DesignHeight="800" d:DesignWidth="1300" Background="#EDF2F4"
+      Title="StandpuntenPage">
 
-    <Grid>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="50" Text="Standpunten"></TextBlock>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" HorizontalAlignment="Stretch">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Standpunten" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"></TextBlock>
+                <Button Content="+ Nieuw Standpunt" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwStandpunt_Click"></Button>
+            </Grid>
+
+            <Border x:Name="NieuwStandpuntForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock x:Name="LblFormTitel" Text="Nieuw Standpunt Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,0,20">
+                            <TextBlock Text="Titel" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtTitel" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Margin="0,0,0,20">
+                            <TextBlock Text="Categorie" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtCategorie" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Beschrijving" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtBeschrijving" Style="{StaticResource ModernTextBoxStyle}" Height="90" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10,10" Margin="0,0,0,25"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="BtnToevoegen" Content="Toevoegen" Style="{StaticResource FormPrimaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Toevoegen_Click"/>
+                        <Button x:Name="BtnAnnuleren" Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Annuleren_Click"/>
+                        <Button x:Name="BtnSluiten" Content="Sluiten" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click" Visibility="Collapsed"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <DataGrid x:Name="MainDataGrid" Grid.Row="2" 
+                      Style="{StaticResource ModernDataGridStyle}" 
+                      ItemsSource="{Binding Standpunten}"
+                      SelectionChanged="DataGrid_SelectionChanged"
+                      VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      AutoGenerateColumns="False">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Titel" Binding="{Binding Titel}" Width="2.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Categorie" Width="1.5*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="#EAEAEA" Height="24" CornerRadius="12" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="12,0" Margin="15,0">
+                                    <TextBlock Text="{Binding Categorie}" Foreground="#2D3748" FontSize="13" VerticalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="4*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+
+                    <DataGridTemplateColumn Header="Acties" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkStandpunt_Click" CommandParameter="{Binding}" />
+                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkStandpunt_Click" CommandParameter="{Binding}" />
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderStandpunt_Click" CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Page>
