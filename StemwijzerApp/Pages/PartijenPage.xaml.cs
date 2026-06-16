@@ -1,25 +1,25 @@
 ﻿using MySqlConnector;
-using PlotTwist;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 
 namespace StemwijzerApp.Pages
 {
-    public partial class PartijenPage : Page
+    public partial class PartijenPage : Page, System.ComponentModel.INotifyPropertyChanged
     {
         public ObservableCollection<VoorbeeldPartij> Partijen { get; set; }
+        public ObservableCollection<PartijStellingMock> HuidigeStandpunten { get; set; }
         private VoorbeeldPartij _geselecteerdePartij;
         private DatabaseHandler _dbHandler = new DatabaseHandler();
 
-        [DllImport("comdlg32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern bool ChooseColor(ref CHOOSECOLOR cc);
+        [DllImport("comdlg32.dll", EntryPoint = "ChooseColorW", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern bool ChooseColor(ref CHOOSECOLOR lpcc);
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct CHOOSECOLOR
         {
             public int lStructSize;
@@ -30,10 +30,21 @@ namespace StemwijzerApp.Pages
             public int Flags;
             public IntPtr lCustData;
             public IntPtr lpfnHook;
-            public IntPtr lpTemplateName;
+            public string lpszTemplateName;
         }
 
         private static int[] customColors = new int[16];
+
+        private bool _areStandpuntenEditable = true;
+        public bool AreStandpuntenEditable
+        {
+            get => _areStandpuntenEditable;
+            set
+            {
+                _areStandpuntenEditable = value;
+                OnPropertyChanged(nameof(AreStandpuntenEditable));
+            }
+        }
 
         public PartijenPage()
         {
@@ -54,27 +65,34 @@ namespace StemwijzerApp.Pages
         private void LoadPartijen()
         {
             Partijen = new ObservableCollection<VoorbeeldPartij>();
-            string query = "SELECT id, name, abbreviation, description, color_hex FROM parties";
+            string query = "SELECT id, name, abbreviation, color_hex, description FROM parties";
 
             try
             {
                 _dbHandler.OpenConnection();
-                MySqlCommand command = new MySqlCommand(query, new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;Convert Zero Datetime=True;"));
-                command.Connection.Open();
-                MySqlDataReader reader = command.ExecuteReader();
-
-                while (reader.Read())
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
                 {
-                    Partijen.Add(new VoorbeeldPartij
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
                     {
-                        Id = reader.GetInt32("id"),
-                        Afkorting = reader.GetString("abbreviation"),
-                        Naam = reader.GetString("name"),
-                        Beschrijving = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description"),
-                        Kleur = reader.GetString("color_hex")
-                    });
+                        string hex = reader.IsDBNull(reader.GetOrdinal("color_hex")) ? "#FF6B00" : reader.GetString("color_hex");
+                        Brush brush = Brushes.OrangeRed;
+                        try { brush = (Brush)new BrushConverter().ConvertFromString(hex); } catch { }
+
+                        Partijen.Add(new VoorbeeldPartij
+                        {
+                            Id = reader.GetInt32("id"),
+                            Naam = reader.GetString("name"),
+                            Afkorting = reader.GetString("abbreviation"),
+                            KleurHex = hex,
+                            KleurBrush = brush,
+                            Beschrijving = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString("description")
+                        });
+                    }
                 }
-                command.Connection.Close();
             }
             catch (Exception ex)
             {
@@ -82,25 +100,83 @@ namespace StemwijzerApp.Pages
             }
         }
 
-        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+        private void LoadStandpuntenVoorPartij(int partyId)
+        {
+            HuidigeStandpunten = new ObservableCollection<PartijStellingMock>();
+            string query = @"SELECT q.id, q.question, pa.answer, pa.explanation 
+                             FROM questions q
+                             LEFT JOIN party_answers pa ON q.id = pa.question_id AND pa.party_id = @partyId";
+
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@partyId", partyId);
+                    MySqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        string rawQuestion = reader.GetString("question");
+                        string categorie = "Algemeen";
+                        string titel = rawQuestion;
+
+                        if (rawQuestion.StartsWith("[") && rawQuestion.Contains("]"))
+                        {
+                            int sluitIndex = rawQuestion.IndexOf("]");
+                            categorie = rawQuestion.Substring(1, sluitIndex - 1);
+                            titel = rawQuestion.Substring(sluitIndex + 1).Trim();
+                        }
+
+                        var stelling = new PartijStellingMock
+                        {
+                            Id = reader.GetInt32("id"),
+                            Titel = titel,
+                            Categorie = categorie,
+                            Beschrijving = "In hoeverre is de partij het eens met dit standpunt?",
+                            IdString = "P" + reader.GetInt32("id"),
+                            Toelichting = reader.IsDBNull(reader.GetOrdinal("explanation")) ? "" : reader.GetString("explanation")
+                        };
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("answer")))
+                        {
+                            int ans = reader.GetInt32("answer");
+                            if (ans == 2) stelling.IsEens = true;
+                            else if (ans == 1) stelling.IsNeutraal = true;
+                            else if (ans == 0) stelling.IsOneens = true;
+                        }
+                        else
+                        {
+                            stelling.IsNeutraal = true;
+                        }
+
+                        HuidigeStandpunten.Add(stelling);
+                    }
+                }
+                StandpuntenItemsControl.ItemsSource = HuidigeStandpunten;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij laden standpunten: {ex.Message}");
+            }
+        }
 
         private void NieuwePartij_Click(object sender, RoutedEventArgs e)
         {
             _geselecteerdePartij = null;
             TxtNaam.Clear();
             TxtAfkorting.Clear();
+            TxtKleur.Text = "#FF6B00";
             TxtBeschrijving.Clear();
-            TxtKleurHex.Text = "#FF6B00";
-
-            SetFieldsEnabled(true);
 
             LblFormTitel.Text = "Nieuwe Partij Toevoegen";
             BtnToevoegen.Content = "Toevoegen";
-            BtnToevoegen.Visibility = Visibility.Visible;
-            NieuwePartijForm.Visibility = Visibility.Visible;
-        }
 
-        private void Annuleren_Click(object sender, RoutedEventArgs e) => ClearForm();
+            PartijStandpuntenForm.Visibility = Visibility.Collapsed;
+            NieuwePartijForm.Visibility = Visibility.Visible;
+            MainDataGrid.Visibility = Visibility.Visible;
+        }
 
         private void Toevoegen_Click(object sender, RoutedEventArgs e)
         {
@@ -110,19 +186,11 @@ namespace StemwijzerApp.Pages
                 return;
             }
 
-            string kleurText = TxtKleurHex.Text;
-            if (string.IsNullOrWhiteSpace(kleurText)) kleurText = "#FF6B00";
-
             string query = string.Empty;
-
             if (_geselecteerdePartij == null)
-            {
-                query = "INSERT INTO parties (name, abbreviation, description, color_hex) VALUES (@name, @abbreviation, @description, @color_hex)";
-            }
+                query = "INSERT INTO parties (name, abbreviation, color_hex, description) VALUES (@name, @abbrev, @color, @desc)";
             else
-            {
-                query = "UPDATE parties SET name = @name, abbreviation = @abbreviation, description = @description, color_hex = @color_hex WHERE id = @id";
-            }
+                query = "UPDATE parties SET name = @name, abbreviation = @abbrev, color_hex = @color, description = @desc WHERE id = @id";
 
             try
             {
@@ -130,22 +198,18 @@ namespace StemwijzerApp.Pages
                 {
                     conn.Open();
                     MySqlCommand cmd = new MySqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@name", TxtNaam.Text);
-                    cmd.Parameters.AddWithValue("@abbreviation", TxtAfkorting.Text);
-                    cmd.Parameters.AddWithValue("@description", TxtBeschrijving.Text);
-                    cmd.Parameters.AddWithValue("@color_hex", kleurText);
-
-                    if (_geselecteerdePartij != null)
-                    {
-                        cmd.Parameters.AddWithValue("@id", _geselecteerdePartij.Id);
-                    }
+                    cmd.Parameters.AddWithValue("@name", TxtNaam.Text.Trim());
+                    cmd.Parameters.AddWithValue("@abbrev", TxtAfkorting.Text.Trim().ToUpper());
+                    cmd.Parameters.AddWithValue("@color", TxtKleur.Text.Trim());
+                    cmd.Parameters.AddWithValue("@desc", TxtBeschrijving.Text.Trim());
+                    if (_geselecteerdePartij != null) cmd.Parameters.AddWithValue("@id", _geselecteerdePartij.Id);
 
                     cmd.ExecuteNonQuery();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fout bij opslaan: {ex.Message}");
+                MessageBox.Show($"Fout bij opslaan partijgegevens: {ex.Message}");
             }
 
             ClearForm();
@@ -161,16 +225,17 @@ namespace StemwijzerApp.Pages
 
             if (_geselecteerdePartij != null)
             {
-                TxtNaam.Text = _geselecteerdePartij.Naam;
-                TxtAfkorting.Text = _geselecteerdePartij.Afkorting;
-                TxtBeschrijving.Text = _geselecteerdePartij.Beschrijving;
-                TxtKleurHex.Text = _geselecteerdePartij.Kleur;
+                VulPartijKopGegevens(_geselecteerdePartij);
+                LoadStandpuntenVoorPartij(_geselecteerdePartij.Id);
 
-                SetFieldsEnabled(false);
+                TxtStandpuntenTitel.Text = $"Standpunten van {_geselecteerdePartij.Afkorting} (Alleen Lezen)";
+                BtnOpslaanStandpunten.Visibility = Visibility.Collapsed;
+                BtnSluitenStandpunten.Visibility = Visibility.Visible;
+                AreStandpuntenEditable = false;
 
-                LblFormTitel.Text = "Partij Details";
-                BtnToevoegen.Visibility = Visibility.Collapsed;
-                NieuwePartijForm.Visibility = Visibility.Visible;
+                NieuwePartijForm.Visibility = Visibility.Collapsed;
+                MainDataGrid.Visibility = Visibility.Collapsed;
+                PartijStandpuntenForm.Visibility = Visibility.Visible;
             }
         }
 
@@ -181,18 +246,64 @@ namespace StemwijzerApp.Pages
 
             if (_geselecteerdePartij != null)
             {
+                VulPartijKopGegevens(_geselecteerdePartij);
+                LoadStandpuntenVoorPartij(_geselecteerdePartij.Id);
+
+                TxtStandpuntenTitel.Text = $"Standpunten van {_geselecteerdePartij.Afkorting}";
+                BtnOpslaanStandpunten.Visibility = Visibility.Visible;
+                BtnSluitenStandpunten.Visibility = Visibility.Collapsed;
+                AreStandpuntenEditable = true;
+
                 TxtNaam.Text = _geselecteerdePartij.Naam;
                 TxtAfkorting.Text = _geselecteerdePartij.Afkorting;
+                TxtKleur.Text = _geselecteerdePartij.KleurHex;
                 TxtBeschrijving.Text = _geselecteerdePartij.Beschrijving;
-                TxtKleurHex.Text = _geselecteerdePartij.Kleur;
-
-                SetFieldsEnabled(true);
-
-                LblFormTitel.Text = "Partij Bewerken";
+                LblFormTitel.Text = "Partij Basisgegevens Wijzigen";
                 BtnToevoegen.Content = "Opslaan";
-                BtnToevoegen.Visibility = Visibility.Visible;
+
                 NieuwePartijForm.Visibility = Visibility.Visible;
+                MainDataGrid.Visibility = Visibility.Collapsed;
+                PartijStandpuntenForm.Visibility = Visibility.Visible;
             }
+        }
+
+        private void OpslaanStandpunten_Click(object sender, RoutedEventArgs e)
+        {
+            if (_geselecteerdePartij == null || HuidigeStandpunten == null) return;
+
+            string query = @"INSERT INTO party_answers (party_id, question_id, answer, explanation) 
+                             VALUES (@partyId, @questionId, @answer, @explanation)
+                             ON DUPLICATE KEY UPDATE answer = @answer, explanation = @explanation";
+
+            try
+            {
+                using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
+                {
+                    conn.Open();
+                    foreach (var stelling in HuidigeStandpunten)
+                    {
+                        int antwoordWaarde = 1;
+                        if (stelling.IsEens) antwoordWaarde = 2;
+                        else if (stelling.IsOneens) antwoordWaarde = 0;
+
+                        MySqlCommand cmd = new MySqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@partyId", _geselecteerdePartij.Id);
+                        cmd.Parameters.AddWithValue("@questionId", stelling.Id);
+                        cmd.Parameters.AddWithValue("@answer", antwoordWaarde);
+                        cmd.Parameters.AddWithValue("@explanation", stelling.Toelichting.Trim());
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij opslaan standpunten: {ex.Message}");
+            }
+
+            ClearForm();
+            LoadPartijen();
+            DataContext = null;
+            DataContext = this;
         }
 
         private void VerwijderPartij_Click(object sender, RoutedEventArgs e)
@@ -203,11 +314,9 @@ namespace StemwijzerApp.Pages
             if (item != null)
             {
                 MessageBoxResult result = MessageBox.Show($"Weet je zeker dat je {item.Naam} wilt verwijderen?", "Bevestigen", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
                 if (result == MessageBoxResult.Yes)
                 {
                     string query = "DELETE FROM parties WHERE id = @id";
-
                     try
                     {
                         using (MySqlConnection conn = new MySqlConnection("Server=localhost;Database=stemwijzer;Uid=root;Pwd=;"))
@@ -217,7 +326,6 @@ namespace StemwijzerApp.Pages
                             cmd.Parameters.AddWithValue("@id", item.Id);
                             cmd.ExecuteNonQuery();
                         }
-
                         if (_geselecteerdePartij == item) ClearForm();
                         Partijen.Remove(item);
                     }
@@ -229,78 +337,81 @@ namespace StemwijzerApp.Pages
             }
         }
 
-        private void BdrKleurVoorbeeld_MouseDown(object sender, MouseButtonEventArgs e)
+        private void KleurKiezer_Click(object sender, RoutedEventArgs e)
         {
-            if (TxtKleurHex.IsEnabled == false) return;
-
             CHOOSECOLOR cc = new CHOOSECOLOR();
-            GCHandle handle = GCHandle.Alloc(customColors, GCHandleType.Pinned);
+            IntPtr allocatedColors = Marshal.AllocHGlobal(customColors.Length * sizeof(int));
+            Marshal.Copy(customColors, 0, allocatedColors, customColors.Length);
+
+            cc.lStructSize = Marshal.SizeOf(typeof(CHOOSECOLOR));
+            cc.hwndOwner = new System.Windows.Interop.WindowInteropHelper(Window.GetWindow(this)).Handle;
+            cc.lpCustColors = allocatedColors;
+            cc.Flags = 0x00000001 | 0x00000002;
 
             try
             {
-                cc.lStructSize = Marshal.SizeOf(typeof(CHOOSECOLOR));
-                cc.hwndOwner = new System.Windows.Interop.WindowInteropHelper(Window.GetWindow(this)).Handle;
-                cc.lpCustColors = handle.AddrOfPinnedObject();
-                cc.Flags = 0x00000001 | 0x00000002;
-
-                try
-                {
-                    Color huidig = (Color)ColorConverter.ConvertFromString(TxtKleurHex.Text);
-                    cc.rgbResult = (huidig.B << 16) | (huidig.G << 8) | huidig.R;
-                }
-                catch { }
-
-                if (ChooseColor(ref cc))
-                {
-                    int r = cc.rgbResult & 0xFF;
-                    int g = (cc.rgbResult >> 8) & 0xFF;
-                    int b = (cc.rgbResult >> 16) & 0xFF;
-
-                    TxtKleurHex.Text = string.Format("#{0:X2}{1:X2}{2:X2}", r, g, b);
-                }
+                Color huidigeKleur = (Color)ColorConverter.ConvertFromString(TxtKleur.Text.Trim());
+                cc.rgbResult = (huidigeKleur.B << 16) | (huidigeKleur.G << 8) | huidigeKleur.R;
             }
-            finally
+            catch
             {
-                handle.Free();
+                cc.rgbResult = 0x00006BFF;
             }
+
+            if (ChooseColor(ref cc))
+            {
+                int r = cc.rgbResult & 0xFF;
+                int g = (cc.rgbResult >> 8) & 0xFF;
+                int b = (cc.rgbResult >> 16) & 0xFF;
+                TxtKleur.Text = $"#{r:X2}{g:X2}{b:X2}";
+            }
+
+            Marshal.Copy(allocatedColors, customColors, 0, customColors.Length);
+            Marshal.FreeHGlobal(allocatedColors);
         }
 
-        private void TxtKleurHex_TextChanged(object sender, TextChangedEventArgs e)
+        private void TxtKleur_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (BordKleurVoorbeeld == null) return;
             try
             {
-                if (BdrKleurVoorbeeld != null && !string.IsNullOrWhiteSpace(TxtKleurHex.Text))
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(TxtKleurHex.Text);
-                    BdrKleurVoorbeeld.Background = new SolidColorBrush(color);
-                }
+                var brush = (Brush)new BrushConverter().ConvertFromString(TxtKleur.Text.Trim());
+                BordKleurVoorbeeld.Background = brush;
             }
-            catch { }
+            catch
+            {
+                BordKleurVoorbeeld.Background = Brushes.Transparent;
+            }
         }
 
-        private void SetFieldsEnabled(bool enabled)
+        private void VulPartijKopGegevens(VoorbeeldPartij partij)
         {
-            TxtNaam.IsEnabled = enabled;
-            TxtAfkorting.IsEnabled = enabled;
-            TxtBeschrijving.IsEnabled = enabled;
-            TxtKleurHex.IsEnabled = enabled;
+            TxtBadgeAfkorting.Text = partij.Afkorting;
+            TxtKopPartijNaam.Text = partij.Naam;
+            TxtKopPartijBeschrijving.Text = string.IsNullOrWhiteSpace(partij.Beschrijving) ? "Geen omschrijving beschikbaar." : partij.Beschrijving;
+            BordPartijKleurBadge.Background = partij.KleurBrush;
         }
+
+        private void Annuleren_Click(object sender, RoutedEventArgs e) => ClearForm();
 
         private void ClearForm()
         {
             TxtNaam.Clear();
             TxtAfkorting.Clear();
+            TxtKleur.Text = "#FF6B00";
             TxtBeschrijving.Clear();
-            TxtKleurHex.Text = "#FF6B00";
             _geselecteerdePartij = null;
+            AreStandpuntenEditable = true;
 
-            SetFieldsEnabled(true);
             NieuwePartijForm.Visibility = Visibility.Collapsed;
+            PartijStandpuntenForm.Visibility = Visibility.Collapsed;
+            MainDataGrid.Visibility = Visibility.Visible;
         }
 
+        private void DataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
         private void PartijenPage_Unloaded(object sender, RoutedEventArgs e) => ClearForm();
 
-        private void DataGrid_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        private void MainDataGrid_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
             if (!e.Handled)
             {
@@ -314,18 +425,42 @@ namespace StemwijzerApp.Pages
                 parent?.RaiseEvent(eventArg);
             }
         }
+
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
     }
 
     public class VoorbeeldPartij : System.ComponentModel.INotifyPropertyChanged
     {
-        private int _id;
-        private string _naam, _afkorting, _beschrijving, _kleur;
+        private string _naam, _afkorting, _kleurHex, _beschrijving;
+        private Brush _kleurBrush;
 
-        public int Id { get => _id; set { _id = value; OnPropertyChanged(nameof(Id)); } }
+        public int Id { get; set; }
         public string Naam { get => _naam; set { _naam = value; OnPropertyChanged(nameof(Naam)); } }
         public string Afkorting { get => _afkorting; set { _afkorting = value; OnPropertyChanged(nameof(Afkorting)); } }
+        public string KleurHex { get => _kleurHex; set { _kleurHex = value; OnPropertyChanged(nameof(KleurHex)); } }
+        public Brush KleurBrush { get => _kleurBrush; set { _kleurBrush = value; OnPropertyChanged(nameof(KleurBrush)); } }
         public string Beschrijving { get => _beschrijving; set { _beschrijving = value; OnPropertyChanged(nameof(Beschrijving)); } }
-        public string Kleur { get => _kleur; set { _kleur = value; OnPropertyChanged(nameof(Kleur)); } }
+
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+    }
+
+    public class PartijStellingMock : System.ComponentModel.INotifyPropertyChanged
+    {
+        private bool _isEens, _isNeutraal, _isOneens;
+        private string _toelichting;
+
+        public int Id { get; set; }
+        public string Titel { get; set; }
+        public string Categorie { get; set; }
+        public string Beschrijving { get; set; }
+        public string IdString { get; set; }
+
+        public bool IsEens { get => _isEens; set { _isEens = value; OnPropertyChanged(nameof(IsEens)); } }
+        public bool IsNeutraal { get => _isNeutraal; set { _isNeutraal = value; OnPropertyChanged(nameof(IsNeutraal)); } }
+        public bool IsOneens { get => _isOneens; set { _isOneens = value; OnPropertyChanged(nameof(IsOneens)); } }
+        public string Toelichting { get => _toelichting; set { _toelichting = value; OnPropertyChanged(nameof(Toelichting)); } }
 
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));

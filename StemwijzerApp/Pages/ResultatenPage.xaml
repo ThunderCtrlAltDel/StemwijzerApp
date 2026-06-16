@@ -98,16 +98,16 @@
                             </StackPanel>
                         </Border>
 
-                        <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="25" Visibility="Collapsed">
+                        <Border x:Name="BesteMatchKaart" Grid.Column="2" Background="White" CornerRadius="8" Padding="25" Visibility="Collapsed">
                             <StackPanel>
                                 <TextBlock Text="Beste Match" FontSize="16" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,0,0,15"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Background="#FF6B00" CornerRadius="6" Width="45" Height="45" VerticalAlignment="Center">
-                                        <TextBlock Text="VVD" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border x:Name="BordPartijKleur" Background="#FF6B00" CornerRadius="6" Width="45" Height="45" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TxtPartijAfkorting" Text="-" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
                                     <StackPanel Margin="15,0,0,0" VerticalAlignment="Center">
-                                        <TextBlock Text="VVD" FontSize="14" Foreground="#2D3748" FontWeight="SemiBold"/>
-                                        <TextBlock Text="0%" FontSize="20" Foreground="#2D3748" FontWeight="Bold"/>
+                                        <TextBlock x:Name="TxtPartijNaam" Text="Geen partij" FontSize="14" Foreground="#2D3748" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="TxtMatchPercentage" Text="0%" FontSize="20" Foreground="#2D3748" FontWeight="Bold"/>
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
@@ -115,8 +115,9 @@
                     </Grid>
 
                     <Grid Margin="0,10,0,15">
-                        <TextBlock Text="Antwoorden Bewerken" FontSize="18" FontWeight="Bold" Foreground="#2D3748" VerticalAlignment="Center"/>
-                        <Button Content="💾 Opslaan" HorizontalAlignment="Right" Style="{StaticResource FormPrimaryButtonStyle}" Width="100" Click="OpslaanAntwoorden_Click"/>
+                        <TextBlock x:Name="LblAntwoordenTitel" Text="Antwoorden Invullen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnOpslaanAntwoorden" Content="💾 Opslaan" HorizontalAlignment="Right" Style="{StaticResource FormPrimaryButtonStyle}" Width="100" Click="OpslaanAntwoorden_Click"/>
+                        <Button x:Name="BtnSluitenDetails" Content="Sluiten" HorizontalAlignment="Right" Style="{StaticResource FormSecondaryButtonStyle}" Width="100" Click="Annuleren_Click" Visibility="Collapsed"/>
                     </Grid>
 
                     <ItemsControl x:Name="StellingenItemsControl">
@@ -138,9 +139,9 @@
                                                 <ColumnDefinition Width="10"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsEens, Mode=TwoWay}"/>
-                                            <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsNeutraal, Mode=TwoWay}"/>
-                                            <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsOneens, Mode=TwoWay}"/>
+                                            <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsEens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsNeutraal, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsOneens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreRadioButtonsEnabled, RelativeSource={RelativeSource AncestorType=Page}}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -177,7 +178,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkResultaat_Click" CommandParameter="{Binding}" />
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkResultaat_Click" CommandParameter="{Binding}" />
                                     <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderResultaat_Click" CommandParameter="{Binding}" />
                                 </StackPanel>
                             </DataTemplate>

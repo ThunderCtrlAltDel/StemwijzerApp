@@ -1,15 +1,17 @@
 ﻿<Page x:Class="StemwijzerApp.Pages.PartijenPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      mc:Ignorable="d"
-      d:DesignHeight="800" d:DesignWidth="1300"
-      Title="PartijenPage" Background="#EDF2F4">
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:StemwijzerApp.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="1000" d:DesignWidth="1300" Background="#EDF2F4"
+      Title="PartijenPage">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -21,7 +23,6 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
                 <TextBlock Text="Politieke Partijen" FontSize="24" VerticalAlignment="Center" Grid.Column="0" Foreground="#2D3748"/>
                 <Button Content="+ Nieuwe Partij" Style="{StaticResource HeaderAccentButtonStyle}" Grid.Column="2" VerticalAlignment="Center" Click="NieuwePartij_Click"/>
             </Grid>
@@ -29,40 +30,43 @@
             <Border x:Name="NieuwePartijForm" Grid.Row="1" Background="White" CornerRadius="8" Padding="25" Margin="0,20,0,20" Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock x:Name="LblFormTitel" Text="Nieuwe Partij Toevoegen" FontSize="18" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,20"/>
-
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="25"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="25"/>
+                            <ColumnDefinition Width="1.5*"/>
                         </Grid.ColumnDefinitions>
-
                         <StackPanel Grid.Column="0" Margin="0,0,0,20">
-                            <TextBlock Text="Naam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <TextBlock Text="Partijnaam" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
                             <TextBox x:Name="TxtNaam" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
                         </StackPanel>
-
                         <StackPanel Grid.Column="2" Margin="0,0,0,20">
                             <TextBlock Text="Afkorting" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
                             <TextBox x:Name="TxtAfkorting" Style="{StaticResource ModernTextBoxStyle}" Height="40"/>
                         </StackPanel>
+                        <StackPanel Grid.Column="4" Margin="0,0,0,20">
+                            <TextBlock Text="Kleur (Hex)" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="TxtKleur" Grid.Column="0" Style="{StaticResource ModernTextBoxStyle}" Height="40" Text="#FF6B00" TextChanged="TxtKleur_TextChanged"/>
+                                <Button Grid.Column="1" Width="40" Height="40" Margin="10,0,0,0" Padding="0" Background="Transparent" BorderBrush="{x:Null}" Cursor="Hand" Click="KleurKiezer_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <Border x:Name="BordKleurVoorbeeld" Width="30" Height="30" CornerRadius="4" Background="#FF6B00"/>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
                     </Grid>
-
-                    <TextBlock Text="Beschrijving" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                    <TextBox x:Name="TxtBeschrijving" Style="{StaticResource ModernTextBoxStyle}" Height="90" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10,10" Margin="0,0,0,20"/>
-
-                    <TextBlock Text="Kleur (Klik op het vakje om te kiezen)" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
-                    <Grid HorizontalAlignment="Left" Margin="0,0,0,25">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Border x:Name="BdrKleurVoorbeeld" Background="#FF6B00" CornerRadius="6" Width="90" Height="40" Grid.Column="0" Cursor="Hand" MouseDown="BdrKleurVoorbeeld_MouseDown"/>
-                        <TextBox x:Name="TxtKleurHex" Width="110" Height="40" VerticalContentAlignment="Center" Text="#FF6B00" Style="{StaticResource ModernTextBoxStyle}" Grid.Column="2" TextChanged="TxtKleurHex_TextChanged"/>
-                    </Grid>
-
+                    <TextBlock Text="Beschrijving / Kernpunten" FontWeight="SemiBold" FontSize="14" Foreground="#2D3748" Margin="0,0,0,8"/>
+                    <TextBox x:Name="TxtBeschrijving" Style="{StaticResource ModernTextBoxStyle}" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10" Margin="0,0,0,20"/>
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="BtnToevoegen" Content="Toevoegen" Style="{StaticResource FormPrimaryButtonStyle}" Width="110" Margin="0,0,10,0" Click="Toevoegen_Click"/>
                         <Button Content="Annuleren" Style="{StaticResource FormSecondaryButtonStyle}" Width="110" Click="Annuleren_Click"/>
@@ -70,34 +74,82 @@
                 </StackPanel>
             </Border>
 
-            <DataGrid Grid.Row="2"
-                      Style="{StaticResource ModernDataGridStyle}"
+            <Border x:Name="PartijStandpuntenForm" Grid.Row="2" Margin="0,20,0,20" Visibility="Collapsed">
+                <StackPanel>
+                    <Border Background="White" CornerRadius="8" Padding="25" Margin="0,0,0,20">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="BordPartijKleurBadge" Background="#FF6B00" CornerRadius="8" Width="55" Height="45" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtBadgeAfkorting" Text="-" Foreground="White" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Margin="20,0,0,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="TxtKopPartijNaam" Text="Partijnaam" FontSize="20" FontWeight="Bold" Foreground="#2D3748"/>
+                                <TextBlock x:Name="TxtKopPartijBeschrijving" Text="Beschrijving" FontSize="14" Foreground="#718096" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <Grid Margin="0,10,0,15">
+                        <TextBlock x:Name="TxtStandpuntenTitel" Text="Standpunten van Partij" FontSize="18" FontWeight="Bold" Foreground="#2D3748" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnOpslaanStandpunten" Content="💾 Opslaan" HorizontalAlignment="Right" Style="{StaticResource FormPrimaryButtonStyle}" Width="100" Click="OpslaanStandpunten_Click"/>
+                        <Button x:Name="BtnSluitenStandpunten" Content="Sluiten" HorizontalAlignment="Right" Style="{StaticResource FormSecondaryButtonStyle}" Width="100" Click="Annuleren_Click" Visibility="Collapsed"/>
+                    </Grid>
+                    <ItemsControl x:Name="StandpuntenItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White" CornerRadius="8" Padding="25" Margin="0,0,0,15">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Titel}" FontSize="15" FontWeight="Bold" Foreground="#2D3748"/>
+                                        <TextBlock Text="{Binding Beschrijving}" FontSize="13" Foreground="#A0AEC0" Margin="0,3,0,10"/>
+                                        <Border Background="#E2E8F0" CornerRadius="8" HorizontalAlignment="Left" Padding="10,3" Margin="0,0,0,15">
+                                            <TextBlock Text="{Binding Categorie}" FontSize="12" Foreground="#4A4A4A" FontWeight="Medium"/>
+                                        </Border>
+                                        <TextBlock Text="Positie" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,0,0,8"/>
+                                        <Grid Margin="0,0,0,15">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="10"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <RadioButton Grid.Column="0" Content="Eens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsEens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreStandpuntenEditable, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="2" Content="Neutraal" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsNeutraal, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreStandpuntenEditable, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                            <RadioButton Grid.Column="4" Content="Oneens" Style="{StaticResource TypeRadioButtonStyle}" Height="40" GroupName="{Binding IdString}" IsChecked="{Binding IsOneens, Mode=TwoWay}" IsEnabled="{Binding DataContext.AreStandpuntenEditable, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                        </Grid>
+                                        <TextBlock Text="Toelichting" FontSize="13" FontWeight="SemiBold" Foreground="#2D3748" Margin="0,0,0,8"/>
+                                        <TextBox Style="{StaticResource ModernTextBoxStyle}" Height="60" Text="{Binding Toelichting, Mode=TwoWay}" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top" Padding="10,5" IsEnabled="{Binding DataContext.AreStandpuntenEditable, RelativeSource={RelativeSource AncestorType=Page}}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <DataGrid x:Name="MainDataGrid" Grid.Row="3" 
+                      Style="{StaticResource ModernDataGridStyle}" 
                       ItemsSource="{Binding Partijen}"
                       SelectionChanged="DataGrid_SelectionChanged"
                       VerticalScrollBarVisibility="Disabled"
-                      PreviewMouseWheel="DataGrid_PreviewMouseWheel"
+                      PreviewMouseWheel="MainDataGrid_PreviewMouseWheel"
                       AutoGenerateColumns="False">
-
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Afkorting" Binding="{Binding Afkorting}" Width="1.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
                     <DataGridTextColumn Header="Naam" Binding="{Binding Naam}" Width="3.5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
-                    <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="4*" ElementStyle="{StaticResource DataGridTextStyle}"/>
-
-                    <DataGridTemplateColumn Header="Kleur" Width="1.5*">
+                    <DataGridTextColumn Header="Beschrijving" Binding="{Binding Beschrijving}" Width="5*" ElementStyle="{StaticResource DataGridTextStyle}"/>
+                    <DataGridTemplateColumn Header="Kleur" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Border Background="{Binding Kleur}" Width="24" Height="24" CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0"/>
+                                <Border Background="{Binding KleurBrush}" Width="28" Height="24" CornerRadius="4" Margin="15,0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-
                     <DataGridTemplateColumn Header="Acties" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkPartij_Click" CommandParameter="{Binding}"/>
-                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkPartij_Click" CommandParameter="{Binding}"/>
-                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderPartij_Click" CommandParameter="{Binding}"/>
+                                    <Button Content="👁" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BekijkPartij_Click" CommandParameter="{Binding}" />
+                                    <Button Content="✎" Style="{StaticResource DataGridActionButtonStyle}" Foreground="#2D3748" Click="BewerkPartij_Click" CommandParameter="{Binding}" />
+                                    <Button Content="🗑" Style="{StaticResource DataGridActionButtonStyle}" Foreground="Red" Click="VerwijderPartij_Click" CommandParameter="{Binding}" />
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
